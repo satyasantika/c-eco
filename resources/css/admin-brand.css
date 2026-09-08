@@ -1,0 +1,63 @@
+/* Penyesuaian panel Filament ke kertas terang C-ECO. */
+
+html.fi {
+    color-scheme: light;
+}
+
+.fi-simple-layout,
+.fi-html,
+.fi-body {
+    background-color: #f4f7f3 !important;
+}
+
+.fi-simple-layout {
+    background-image: linear-gradient(90deg, #1c5d3a 0 14px, transparent 14px);
+}
+
+.fi-logo {
+    font-family: Palatino, "Palatino Linotype", Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #1c5d3a;
+    font-size: 1.85rem;
+}
+
+.fi-simple-header-heading,
+.fi-simple-header h1 {
+    font-family: Palatino, "Palatino Linotype", Georgia, serif;
+    color: #1a2b22;
+}
+
+.fi-simple-main {
+    background: #fffcf7;
+    border: 1px solid #c5d2c8;
+    box-shadow: none;
+    border-radius: 2px;
+}
+
+.ceco-login-note {
+    margin: 0 0 1rem;
+    color: #5a6b62;
+    font-size: 0.925rem;
+    line-height: 1.45;
+}
+
+.ceco-login-back {
+    margin: 1.25rem 0 0;
+    font-size: 0.9rem;
+}
+
+.ceco-login-back a {
+    color: #1c5d3a;
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+.fi-simple-layout .fi-btn.fi-color-primary {
+    background-color: #1c5d3a !important;
+    color: #f4f7f3 !important;
+}
+
+.fi-simple-layout .fi-btn.fi-color-primary:hover {
+    filter: brightness(1.08);
+}

@@ -11,6 +11,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/css/site.css',
+                'resources/css/admin-brand.css',
                 'resources/css/student.css',
                 'resources/js/student.js',
             ],

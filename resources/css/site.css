@@ -1,0 +1,195 @@
+/*
+ * Identitas visual C-ECO di halaman publik (bukan sisi siswa).
+ *
+ * Kertas ujian, bukan dasbor SaaS: latar kertas kehijauan, tinta hijau Unsil,
+ * spine seperti sampul buku pelajaran. Tanpa webfont — stack sistem, sama
+ * seperti sisi siswa, supaya halaman ini tidak menarik CDN diam-diam.
+ */
+
+:root {
+  --paper: #f4f7f3;
+  --sheet: #fffcf7;
+  --ink: #1a2b22;
+  --muted: #5a6b62;
+  --line: #c5d2c8;
+  --forest: #1c5d3a;
+  --forest-ink: #f4f7f3;
+  --wash: #e4eee7;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+body.site {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.site-frame {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+}
+
+.site-spine {
+  background: var(--forest);
+}
+
+.site-sheet {
+  background:
+    linear-gradient(180deg, transparent 47px, var(--line) 47px, var(--line) 48px, transparent 48px),
+    var(--sheet);
+  background-size: 100% 48px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 28px 40px;
+  min-height: 100vh;
+}
+
+.wordmark {
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Georgia, serif;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0 0 8px;
+  color: var(--forest);
+}
+
+.lede {
+  font-size: 20px;
+  margin: 0 0 28px;
+  max-width: 28em;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 36px;
+}
+
+.doors {
+  display: grid;
+  gap: 28px;
+}
+
+@media (min-width: 640px) {
+  .site-frame { grid-template-columns: 22px 1fr; }
+  .site-sheet { padding: 64px 48px 48px; }
+  .wordmark { font-size: 56px; }
+  .doors { grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: start; }
+}
+
+.door h2 {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.door p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.door-staff {
+  padding: 20px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+@media (min-width: 640px) {
+  .door-staff {
+    padding: 0 0 0 28px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+
+label.field {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+input[type="text"].token {
+  width: 100%;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 2px solid var(--forest);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 0;
+}
+
+input[type="text"].token:focus {
+  outline: 2px solid var(--forest);
+  outline-offset: 4px;
+}
+
+.actions { margin-top: 18px; }
+
+button.primary,
+a.primary {
+  display: inline-block;
+  background: var(--forest);
+  color: var(--forest-ink);
+  border: 0;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+button.primary:hover,
+a.primary:hover { filter: brightness(1.08); }
+
+button.primary:focus-visible,
+a.primary:focus-visible,
+a.text:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
+}
+
+a.text {
+  color: var(--forest);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.err {
+  color: #8a1f12;
+  background: #f8e8e4;
+  padding: 8px 10px;
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
+.foot {
+  margin-top: 48px;
+  color: var(--muted);
+  font-size: 13px;
+}

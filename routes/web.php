@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\SlipController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\StudentTestController;
 use App\Http\Middleware\RecordResponseMetrics;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\WithoutLivewireAssets;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => view('welcome'));
+Route::get('/', [LandingController::class, 'show'])->name('landing');
+Route::post('masuk', [LandingController::class, 'enter'])->name('landing.enter');
 
 // Middleware auth bawaan Laravel mengarahkan tamu ke route('login'); di sini
 // satu-satunya halaman masuk adalah milik panel Filament.
