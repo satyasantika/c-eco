@@ -29,4 +29,14 @@ return [
 
     'categories_are_provisional' => true,
 
+    /*
+    | Dump basis data terjadwal tiap 15 menit (routes/console.php). Dimatikan
+    | secara bawaan supaya mesin pengembangan tidak menumpuk berkas; dinyalakan
+    | pada server pelaksanaan.
+    */
+    'backup' => [
+        'enabled' => (bool) env('CAT_BACKUP_ENABLED', false),
+        'keep' => (int) env('CAT_BACKUP_KEEP', 48),
+    ],
+
 ];

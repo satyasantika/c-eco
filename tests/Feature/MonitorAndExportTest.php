@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Widgets\ConnectionMix;
+use App\Filament\Widgets\ProgressDistribution;
+use App\Filament\Widgets\ResponseHealth;
+use App\Filament\Widgets\SessionOverview;
+use App\Models\SessionItem;
 use App\Models\TestSession;
 use App\Models\User;
 use App\Services\CatSession;
@@ -74,7 +79,50 @@ class MonitorAndExportTest extends TestCase
         $this->assertSame('1', $this->stats()['Tersendat']);
     }
 
-    public function test_the_export_writes_three_files_and_refuses_an_empty_selection(): void
+    /** Waktu respons dicatat middleware, lalu dibaca widget tanpa tabel baru. */
+    public function test_the_answer_endpoint_feeds_the_response_health_widget(): void
+    {
+        $session = $this->makeSession();
+        $this->cat->start($session);
+
+        $this->postJson("/api/t/{$session->access_token}/answer", [
+            'sequence' => 1,
+            'option' => 'A',
+            'client_ts' => Carbon::now()->getTimestampMs(),
+        ])->assertOk();
+
+        $stats = $this->statsOf(new ResponseHealth);
+
+        $this->assertSame('1', $stats['Permintaan']);
+        $this->assertSame('0.00%', $stats['Galat 5xx']);
+        $this->assertStringEndsWith(' ms', $stats['p95']);
+    }
+
+    public function test_the_progress_chart_counts_active_students_by_item(): void
+    {
+        $this->cat->start($this->makeSession(token: 'DDDD6666'));
+        $this->runFullSession();
+
+        $chart = new ProgressDistribution;
+        $data = (new \ReflectionMethod($chart, 'getData'))->invoke($chart);
+
+        // Hanya sesi in_progress yang dihitung; yang sudah selesai keluar.
+        $this->assertSame([1], $data['datasets'][0]['data']);
+        $this->assertSame(['butir 1'], $data['labels']);
+    }
+
+    public function test_the_connection_chart_labels_sessions_that_reported_nothing(): void
+    {
+        $this->cat->start($this->makeSession(token: 'EEEE7777'));
+
+        $chart = new ConnectionMix;
+        $data = (new \ReflectionMethod($chart, 'getData'))->invoke($chart);
+
+        $this->assertSame(['tidak dilaporkan'], $data['labels']);
+        $this->assertSame([1], $data['datasets'][0]['data']);
+    }
+
+    public function test_the_export_writes_four_files_and_refuses_an_empty_selection(): void
     {
         $this->artisan('cat:export')->assertFailed();
 
@@ -82,12 +130,43 @@ class MonitorAndExportTest extends TestCase
 
         $this->artisan('cat:export', ['--dir' => 'test-exports'])->assertSuccessful();
 
-        $files = Storage::disk('local')->files('test-exports');
+        $files = array_map('basename', Storage::disk('local')->allFiles('test-exports'));
 
-        $this->assertCount(3, $files);
-        $this->assertNotEmpty(preg_grep('/sessions-/', $files));
-        $this->assertNotEmpty(preg_grep('/responses-/', $files));
-        $this->assertNotEmpty(preg_grep('/events-/', $files));
+        sort($files);
+
+        $this->assertSame(
+            ['events.csv', 'participants.csv', 'session_items.csv', 'sessions.csv'],
+            $files,
+        );
+    }
+
+    /** Penyaring --completed-only tidak boleh menyeret sesi yang masih berjalan. */
+    public function test_the_export_honours_the_completed_only_filter(): void
+    {
+        $running = $this->makeSession(token: 'CCCC5555');
+        $this->cat->start($running);
+        $done = $this->runFullSession();
+
+        $this->artisan('cat:export', ['--dir' => 'test-exports', '--completed-only' => true])
+            ->assertSuccessful();
+
+        $rows = $this->readCsv($this->exportedFile('sessions.csv'));
+
+        $this->assertCount(1, $rows);
+        $this->assertSame((string) $done->id, $rows[0]['id']);
+    }
+
+    public function test_the_export_includes_the_participants_behind_the_sessions(): void
+    {
+        $session = $this->runFullSession();
+
+        $this->artisan('cat:export', ['--dir' => 'test-exports'])->assertSuccessful();
+
+        $rows = $this->readCsv($this->exportedFile('participants.csv'));
+
+        $this->assertCount(1, $rows);
+        $this->assertSame((string) $session->participant_id, $rows[0]['id']);
+        $this->assertNotSame('', $rows[0]['school']);
     }
 
     /**
@@ -103,7 +182,7 @@ class MonitorAndExportTest extends TestCase
 
         $this->artisan('cat:export', ['--dir' => 'test-exports'])->assertSuccessful();
 
-        $rows = $this->readCsv(array_values(preg_grep('/responses-/', Storage::disk('local')->files('test-exports')))[0]);
+        $rows = $this->readCsv($this->exportedFile('session_items.csv'));
 
         $this->assertNotEmpty($rows);
 
@@ -113,7 +192,7 @@ class MonitorAndExportTest extends TestCase
             $this->assertSame('1', $row['is_provisional']);
 
             // Parameter tercatat harus yang dipakai sesi, bukan yang terbaru.
-            $stored = \App\Models\SessionItem::query()
+            $stored = SessionItem::query()
                 ->where('test_session_id', $session->id)
                 ->where('sequence', (int) $row['sequence'])
                 ->value('item_parameter_id');
@@ -127,7 +206,7 @@ class MonitorAndExportTest extends TestCase
         $this->runFullSession();
         $this->artisan('cat:export', ['--dir' => 'test-exports'])->assertSuccessful();
 
-        $rows = $this->readCsv(array_values(preg_grep('/responses-/', Storage::disk('local')->files('test-exports')))[0]);
+        $rows = $this->readCsv($this->exportedFile('session_items.csv'));
 
         foreach ($rows as $row) {
             $this->assertContains($row['response_label'], ['A', 'B', 'C', 'D', 'E']);
@@ -136,12 +215,34 @@ class MonitorAndExportTest extends TestCase
         }
     }
 
+    /** Ekspor terbaru berada di subfolder bercap waktu; ambil yang paling akhir. */
+    private function exportedFile(string $name): string
+    {
+        $matches = array_values(array_filter(
+            Storage::disk('local')->allFiles('test-exports'),
+            static fn (string $path): bool => basename($path) === $name,
+        ));
+
+        sort($matches);
+
+        $this->assertNotEmpty($matches, "Berkas {$name} tidak ada di hasil ekspor.");
+
+        return end($matches);
+    }
+
     /**
      * @return array<string, string>
      */
     private function stats(): array
     {
-        $widget = new \App\Filament\Widgets\SessionOverview;
+        return $this->statsOf(new SessionOverview);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function statsOf(object $widget): array
+    {
         $method = new \ReflectionMethod($widget, 'getStats');
 
         $stats = [];

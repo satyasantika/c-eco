@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\SlipController;
 use App\Http\Controllers\StudentTestController;
+use App\Http\Middleware\RecordResponseMetrics;
 use App\Http\Middleware\WithoutLivewireAssets;
 use Illuminate\Support\Facades\Route;
 
@@ -22,7 +23,7 @@ Route::get('admin/slip/{config}', SlipController::class)
 | Alur siswa. Rate limit tetap dikunci ke token, bukan IP (aturan R2).
 */
 Route::prefix('t/{token}')
-    ->middleware(['throttle:cat-web', WithoutLivewireAssets::class])
+    ->middleware(['throttle:cat-web', WithoutLivewireAssets::class, RecordResponseMetrics::class])
     ->group(function (): void {
         Route::get('/', [StudentTestController::class, 'show'])->name('student.show');
         Route::post('mulai', [StudentTestController::class, 'consent'])->name('student.consent');

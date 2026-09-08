@@ -2,6 +2,7 @@ FROM php:8.3-fpm-alpine
 
 RUN apk add --no-cache \
         git unzip icu-dev oniguruma-dev libzip-dev \
+        mariadb-client \
         libpng-dev libjpeg-turbo-dev freetype-dev linux-headers \
         $PHPIZE_DEPS \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
