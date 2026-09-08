@@ -23,6 +23,7 @@ make test
 
 - Aplikasi: http://localhost:8019
 - Admin Filament: http://localhost:8019/admin
+- Kartu QR pengawas: http://localhost:8019/awas/{id} (login panel)
 - MariaDB host: `127.0.0.1:3306` · `db_ceco` · user `app`
 
 ## Perintah
@@ -31,6 +32,7 @@ make test
 |---|---|
 | `cat:seed-items` | Memuat bank soal dari `data/items-all.json` |
 | `cat:seed-provisional-parameters` | Parameter butir sementara untuk uji fisibilitas |
+| `cat:import-item-package` | Paket soal baru dari JSON (`--grade=`, `--package-version=`) |
 | `cat:import-parameters` | Parameter hasil kalibrasi, sebagai versi baru (R5) |
 | `cat:import-participants` | Daftar peserta dari CSV |
 | `cat:issue-tokens` | Menerbitkan token akses |
@@ -38,7 +40,7 @@ make test
 | `cat:export` | Empat CSV untuk analisis di R |
 | `cat:backup` | Dump basis data terkompresi |
 | `cat:print-form` | Lembar soal dan lembar jawaban untuk lapis mundur L3 |
-| `cat:seed-simulation` | Akun panel (1 admin, 2 operator, 9 pengawas, 1 peneliti) + 20 siswa beserta token (lokal) |
+| `cat:seed-simulation` | Akun panel + paket campuran seimbang + jadwal 20/1, 100/4, atau 300/10 (`20`, `100`, `300`, atau `all`) |
 
 ## Jalur mundur hari-H
 
