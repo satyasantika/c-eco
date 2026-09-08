@@ -8,6 +8,7 @@ use App\CAT\Candidate;
 use App\CAT\ContentBalancer;
 use App\CAT\EapEstimator;
 use App\CAT\ItemSelector;
+use App\CAT\LinearSelector;
 use App\CAT\NoCandidateException;
 use App\CAT\Response;
 use App\CAT\StoppingRule;
@@ -208,10 +209,9 @@ class CatSession
     {
         $responses = $this->responses($session);
         $estimate = $this->estimator->estimate($responses);
-        $config = $session->testConfig;
 
         $candidates = $this->candidates($session);
-        $rule = new StoppingRule($config->min_items, $config->max_items, $config->se_target);
+        $rule = $this->stoppingRule($session);
 
         if ($rule->shouldStop($session->items_administered, $estimate->se, count($candidates))) {
             return $this->finish($session);
@@ -238,15 +238,19 @@ class CatSession
         float $se,
     ): SessionItem {
         $sequence = $session->sessionItems()->max('sequence') + 1;
-        $selector = new ItemSelector($this->balancer($session), $this->estimator);
+        $dimensions = $this->administeredDimensions($session);
+        $balancer = $this->balancer($session);
 
-        $selection = $selector->select(
-            candidates: $candidates,
-            responses: $responses,
-            administeredDimensions: $this->administeredDimensions($session),
-            sequence: $sequence,
-            rngSeed: $session->rng_seed,
-        );
+        $selection = $this->mode($session) === 'linear'
+            ? (new LinearSelector($balancer, $session->testConfig->max_items))
+                ->select($candidates, $dimensions, $sequence, $theta)
+            : (new ItemSelector($balancer, $this->estimator))->select(
+                candidates: $candidates,
+                responses: $responses,
+                administeredDimensions: $dimensions,
+                sequence: $sequence,
+                rngSeed: $session->rng_seed,
+            );
 
         $item = Item::query()->with(['options', 'activeParameter'])->findOrFail($selection->candidate->itemId);
 
@@ -273,6 +277,38 @@ class CatSession
         $this->bumpExposure($session, $item->id, 'times_selected');
 
         return $sessionItem->setRelation('item', $item);
+    }
+
+    /**
+     * Mode yang berlaku untuk sesi ini, aturan R10.
+     *
+     * Sesi yang sudah berjalan TIDAK berubah mode di tengah jalan: aturan yang
+     * dipakai butir pertama mengikat sampai selesai. Kalau tidak, seorang siswa
+     * bisa mengerjakan separuh tes adaptif lalu separuh tes linear, dan datanya
+     * tidak menggambarkan kondisi mana pun.
+     */
+    private function mode(TestSession $session): string
+    {
+        $firstRule = $session->sessionItems()->orderBy('sequence')->value('selection_rule');
+
+        if ($firstRule !== null) {
+            return str_starts_with($firstRule, 'linear') ? 'linear' : 'adaptive';
+        }
+
+        // Penimpa global menang atas test_configs, tetapi hanya untuk sesi BARU.
+        return config('cat.mode') === 'linear' ? 'linear' : $session->testConfig->mode;
+    }
+
+    /** Mode linear selalu menyajikan tepat max_items butir. */
+    private function stoppingRule(TestSession $session): StoppingRule
+    {
+        $config = $session->testConfig;
+
+        if ($this->mode($session) === 'linear') {
+            return new StoppingRule($config->max_items, $config->max_items, $config->se_target);
+        }
+
+        return new StoppingRule($config->min_items, $config->max_items, $config->se_target);
     }
 
     private function finish(TestSession $session): SessionState
