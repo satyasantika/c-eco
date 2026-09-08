@@ -17,4 +17,9 @@ class School extends Model
     {
         return $this->hasMany(Participant::class);
     }
+
+    public function examGroups(): HasMany
+    {
+        return $this->hasMany(ExamGroup::class);
+    }
 }

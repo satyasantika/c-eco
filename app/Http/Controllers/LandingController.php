@@ -29,7 +29,7 @@ class LandingController extends Controller
 
         if (! TestSession::query()->where('access_token', $token)->exists()) {
             return back()
-                ->withErrors(['token' => 'Token itu tidak ada. Tanyakan slip cadangan ke pengawas.'])
+                ->withErrors(['token' => 'Token itu tidak ada. Tanyakan kode QR atau slip cadangan ke pengawas.'])
                 ->withInput();
         }
 

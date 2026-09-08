@@ -26,6 +26,8 @@ use Illuminate\Support\Collection;
  */
 class LinearFormBuilder
 {
+    public function __construct(private readonly ItemPool $pool = new ItemPool) {}
+
     /**
      * @return Collection<int, Item> berurutan sesuai posisi di bentuk tes
      */
@@ -71,10 +73,7 @@ class LinearFormBuilder
      */
     private function candidateItems(TestConfig $config): Collection
     {
-        return Item::query()
-            ->active()
-            ->where('item_bank_id', $config->item_bank_id)
-            ->whereHas('parameters', fn ($q) => $q->where('is_active', true))
+        return $this->pool->query($config)
             ->with(['activeParameter', 'dimension', 'options'])
             ->orderBy('id')
             ->get()
@@ -83,9 +82,7 @@ class LinearFormBuilder
 
     private function balancer(TestConfig $config): ContentBalancer
     {
-        $counts = Item::query()
-            ->active()
-            ->where('item_bank_id', $config->item_bank_id)
+        $counts = $this->pool->query($config)
             ->join('dimensions', 'items.dimension_id', '=', 'dimensions.id')
             ->selectRaw('dimensions.code as code, count(*) as total')
             ->groupBy('dimensions.code')

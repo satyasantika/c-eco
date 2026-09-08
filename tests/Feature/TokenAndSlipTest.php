@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Filament\Resources\Items\ItemResource;
+use App\Models\Item;
 use App\Models\Participant;
 use App\Models\TestConfig;
 use App\Models\TestSession;
@@ -146,14 +147,17 @@ class TokenAndSlipTest extends TestCase
         $this->importParticipants();
         $user = User::factory()->create();
 
-        foreach (['/admin/items', '/admin/participants', '/admin/schools'] as $url) {
+        foreach (['/admin/items', '/admin/item-banks', '/admin/participants', '/admin/schools', '/admin/exam-groups'] as $url) {
             $this->actingAs($user)->get($url)->assertOk();
         }
+
+        $this->actingAs($user)->get('/admin/test-configs')->assertForbidden();
+        $this->actingAs(User::factory()->operator()->create())->get('/admin/test-configs')->assertOk();
     }
 
     public function test_the_item_edit_page_renders_with_its_options(): void
     {
-        $item = \App\Models\Item::query()->where('code', 'XI-01')->firstOrFail();
+        $item = Item::query()->where('code', 'XI-01')->firstOrFail();
 
         $this->actingAs(User::factory()->create())
             ->get("/admin/items/{$item->id}/edit")
@@ -161,7 +165,7 @@ class TokenAndSlipTest extends TestCase
             ->assertSee('Opsi jawaban');
     }
 
-    /** Butir tidak pernah dibuat atau dihapus lewat panel. */
+    /** Butir tidak diketik atau dihapus lewat panel; paket baru masuk lewat impor. */
     public function test_the_item_resource_offers_no_create_or_delete(): void
     {
         $this->assertFalse(ItemResource::canCreate());

@@ -12,8 +12,10 @@ use App\CAT\LinearSelector;
 use App\CAT\NoCandidateException;
 use App\CAT\Response;
 use App\CAT\StoppingRule;
+use App\Exceptions\ExamNotStartedException;
 use App\Exceptions\SequenceConflictException;
 use App\Exceptions\SessionCompletedException;
+use App\Exceptions\UnclaimedSessionException;
 use App\Models\Item;
 use App\Models\SessionEvent;
 use App\Models\SessionItem;
@@ -53,6 +55,7 @@ class CatSession
     public function __construct(
         private readonly EapEstimator $estimator = new EapEstimator,
         private readonly SessionReporter $reporter = new SessionReporter,
+        private readonly ItemPool $pool = new ItemPool,
     ) {}
 
     /**
@@ -70,6 +73,20 @@ class CatSession
             }
 
             if ($session->status === 'pending') {
+                if ($session->isUnclaimed()) {
+                    throw new UnclaimedSessionException(
+                        "Sesi {$session->access_token} belum diisi identitas."
+                    );
+                }
+
+                $session->loadMissing('examGroup');
+
+                if (! $session->examWindowOpen()) {
+                    throw new ExamNotStartedException(
+                        'Tes belum dimulai. Tunggu jam pelaksanaan di jadwal.'
+                    );
+                }
+
                 $session->forceFill([
                     'status' => 'in_progress',
                     'started_at' => Carbon::now(),
@@ -413,8 +430,8 @@ class CatSession
     }
 
     /**
-     * Butir yang masih boleh disajikan: aktif, sejenjang, belum keluar di sesi
-     * ini, dan punya parameter aktif (R4).
+     * Butir yang masih boleh disajikan: aktif, ada di kolam paket, belum
+     * keluar di sesi ini, dan punya parameter aktif (R4).
      *
      * @return list<Candidate>
      */
@@ -422,11 +439,8 @@ class CatSession
     {
         $administered = $session->sessionItems()->pluck('item_id')->all();
 
-        return Item::query()
-            ->active()
-            ->where('item_bank_id', $session->item_bank_id)
+        return $this->pool->query($session->testConfig)
             ->whereNotIn('id', $administered)
-            ->whereHas('parameters', fn ($q) => $q->where('is_active', true))
             ->with(['activeParameter', 'dimension:id,code'])
             ->orderBy('id')
             ->get()
@@ -438,12 +452,10 @@ class CatSession
             ->all();
     }
 
-    /** Target proporsi dihitung dari seluruh bank jenjang, bukan sisa kandidat. */
+    /** Target proporsi dihitung dari kolam paket, bukan sisa kandidat. */
     private function balancer(TestSession $session): ContentBalancer
     {
-        $counts = Item::query()
-            ->active()
-            ->where('item_bank_id', $session->item_bank_id)
+        $counts = $this->pool->query($session->testConfig)
             ->join('dimensions', 'items.dimension_id', '=', 'dimensions.id')
             ->selectRaw('dimensions.code as code, count(*) as total')
             ->groupBy('dimensions.code')

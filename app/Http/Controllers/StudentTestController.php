@@ -8,6 +8,8 @@ use App\Exceptions\SequenceConflictException;
 use App\Exceptions\SessionCompletedException;
 use App\Models\TestSession;
 use App\Services\CatSession;
+use App\Services\SeatOpener;
+use App\Services\SessionClaimer;
 use App\Services\StudentFeedbackBuilder;
 use App\Support\SessionState;
 use Illuminate\Contracts\View\View;
@@ -28,6 +30,8 @@ class StudentTestController extends Controller
     public function __construct(
         private readonly CatSession $cat,
         private readonly StudentFeedbackBuilder $feedback,
+        private readonly SessionClaimer $claimer,
+        private readonly SeatOpener $opener,
     ) {}
 
     public function show(string $token): View
@@ -41,7 +45,17 @@ class StudentTestController extends Controller
             ]);
         }
 
+        if ($waiting = $this->waitingView($session)) {
+            return $waiting;
+        }
+
         if ($session->status === 'pending') {
+            if ($session->isUnclaimed()) {
+                $session = $this->opener->markOpened($session);
+
+                return view('student.identify', ['session' => $session]);
+            }
+
             return $session->participant->consent_at === null
                 ? view('student.welcome', ['session' => $session])
                 : view('student.practice', ['session' => $session]);
@@ -50,19 +64,60 @@ class StudentTestController extends Controller
         return $this->testView($this->cat->state($session));
     }
 
-    public function consent(Request $request, string $token): RedirectResponse
+    public function identify(Request $request, string $token): RedirectResponse
     {
-        $request->validate(['consent' => ['accepted']]);
+        $validated = $request->validate([
+            'student_code' => ['required', 'string', 'max:32'],
+            'display_name' => ['required', 'string', 'max:255'],
+            'grade' => ['required', 'in:X,XI,XII'],
+            'class_name' => ['required', 'string', 'max:64'],
+        ]);
 
         $session = $this->session($token);
+
+        if (! $session->examWindowOpen()) {
+            return redirect()->route('student.show', $token);
+        }
+
+        try {
+            $this->claimer->claim($session, [
+                'student_code' => $validated['student_code'],
+                'display_name' => $validated['display_name'],
+                'grade' => $validated['grade'],
+                'class_name' => $validated['class_name'],
+            ]);
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['student_code' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()->route('student.show', $token);
+    }
+
+    public function consent(Request $request, string $token): RedirectResponse
+    {
+        $session = $this->session($token);
+
+        if (! $session->examWindowOpen() || $session->isUnclaimed()) {
+            return redirect()->route('student.show', $token);
+        }
+
+        $request->validate(['consent' => ['accepted']]);
         $session->participant->forceFill(['consent_at' => Carbon::now()])->save();
 
         return redirect()->route('student.practice', $token);
     }
 
-    public function practice(string $token): View
+    public function practice(string $token): View|RedirectResponse
     {
         $session = $this->session($token);
+
+        if ($waiting = $this->waitingView($session)) {
+            return $waiting;
+        }
+
+        if ($session->isUnclaimed()) {
+            return redirect()->route('student.show', $token);
+        }
 
         if ($session->status !== 'pending') {
             return $this->testView($this->cat->state($session));
@@ -75,6 +130,10 @@ class StudentTestController extends Controller
     public function begin(string $token): RedirectResponse
     {
         $session = $this->session($token);
+
+        if (! $session->examWindowOpen() || $session->isUnclaimed()) {
+            return redirect()->route('student.show', $token);
+        }
 
         $this->cat->start($session, [
             'user_agent' => (string) request()->userAgent(),
@@ -94,6 +153,10 @@ class StudentTestController extends Controller
         ]);
 
         $session = $this->session($token);
+
+        if ($waiting = $this->waitingView($session)) {
+            return $waiting;
+        }
 
         try {
             $state = $this->cat->answer(
@@ -136,8 +199,33 @@ class StudentTestController extends Controller
         ]);
     }
 
+    private function waitingView(TestSession $session): ?View
+    {
+        if (in_array($session->status, ['in_progress', 'completed'], true)) {
+            return null;
+        }
+
+        if ($session->examWindowOpen()) {
+            return null;
+        }
+
+        $group = $session->examGroup;
+        $now = Carbon::now();
+
+        return view('student.waiting', [
+            'session' => $session,
+            'waiting' => true,
+            'opensAt' => $group?->starts_at,
+            'serverNow' => $now,
+            'reloadSeconds' => 10,
+        ]);
+    }
+
     private function session(string $token): TestSession
     {
-        return TestSession::query()->where('access_token', $token)->firstOrFail();
+        return TestSession::query()
+            ->where('access_token', $token)
+            ->with(['participant', 'examGroup.school'])
+            ->firstOrFail();
     }
 }

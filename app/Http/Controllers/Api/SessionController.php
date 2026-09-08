@@ -37,6 +37,16 @@ class SessionController extends Controller
 
         $session = $this->session($token);
 
+        if ($session->isUnclaimed()) {
+            return response()->json(['error' => 'identity_required'], Response::HTTP_CONFLICT);
+        }
+
+        $session->loadMissing('examGroup');
+
+        if (! $session->examWindowOpen()) {
+            return response()->json(['error' => 'not_started'], Response::HTTP_FORBIDDEN);
+        }
+
         $state = $this->cat->start($session, $validated + [
             'user_agent' => (string) $request->userAgent(),
             'ip' => (string) $request->ip(),
@@ -104,6 +114,9 @@ class SessionController extends Controller
 
     private function session(string $token): TestSession
     {
-        return TestSession::query()->where('access_token', $token)->firstOrFail();
+        return TestSession::query()
+            ->where('access_token', $token)
+            ->with('examGroup')
+            ->firstOrFail();
     }
 }

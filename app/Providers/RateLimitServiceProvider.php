@@ -26,6 +26,7 @@ class RateLimitServiceProvider extends ServiceProvider
         RateLimiter::for('cat-event', fn (Request $request): Limit => Limit::perMinute(120)->by($this->token($request)));
         RateLimiter::for('cat-state', fn (Request $request): Limit => Limit::perMinute(60)->by($this->token($request)));
         RateLimiter::for('cat-web', fn (Request $request): Limit => Limit::perMinute(120)->by($this->token($request)));
+        RateLimiter::for('proctor-qr', fn (Request $request): Limit => Limit::perMinute(60)->by((string) $request->user()?->id));
     }
 
     private function token(Request $request): string

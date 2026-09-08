@@ -30,6 +30,11 @@ class StaffUsersTest extends TestCase
         $this->actingAs($pengawas)->get('/admin/users')->assertForbidden();
         $this->actingAs($pengawas)->get('/admin/participants')->assertForbidden();
         $this->actingAs($pengawas)->get('/admin/items')->assertForbidden();
+        $this->actingAs($pengawas)->get('/admin/exam-groups')->assertOk();
+        $this->actingAs($pengawas)->get('/admin/exam-groups/create')->assertForbidden();
+        $this->actingAs($pengawas)->get('/admin/test-configs')->assertForbidden();
+        $this->actingAs($admin)->get('/admin/exam-groups/create')->assertForbidden();
+        $this->actingAs($admin)->get('/admin/test-configs')->assertForbidden();
     }
 
     public function test_an_operator_manages_the_roster_but_not_staff_accounts(): void
@@ -37,6 +42,9 @@ class StaffUsersTest extends TestCase
         $operator = User::factory()->operator()->create();
 
         $this->actingAs($operator)->get('/admin/participants')->assertOk();
+        $this->actingAs($operator)->get('/admin/exam-groups')->assertOk();
+        $this->actingAs($operator)->get('/admin/exam-groups/create')->assertOk();
+        $this->actingAs($operator)->get('/admin/test-configs')->assertOk();
         $this->actingAs($operator)->get('/admin/users')->assertForbidden();
         $this->actingAs($operator)->get('/admin/items')->assertForbidden();
     }
@@ -47,6 +55,7 @@ class StaffUsersTest extends TestCase
 
         $this->actingAs($peneliti);
         $this->get('/admin/items')->assertOk();
+        $this->get('/admin/item-banks')->assertOk();
         $this->assertFalse(ItemResource::canEdit(new Item));
         $this->assertFalse(UserResource::canViewAny());
         $this->assertFalse(ParticipantResource::canViewAny());

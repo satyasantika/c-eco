@@ -26,6 +26,7 @@ class SlipController extends Controller
 
         $sessions = TestSession::query()
             ->where('test_config_id', $config->id)
+            ->whereNull('exam_group_id')
             ->when($request->query('class'), fn ($q, $class) => $q->whereRelation('participant', 'class_name', 'like', "%{$class}%"))
             ->when($request->query('school'), fn ($q, $school) => $q->whereRelation('participant.school', 'name', 'like', "%{$school}%"))
             ->with('participant.school')

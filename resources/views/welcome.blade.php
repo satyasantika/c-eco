@@ -18,7 +18,7 @@
         <div class="doors">
             <section class="door" aria-labelledby="siswa-judul">
                 <h2 id="siswa-judul">Siswa</h2>
-                <p>Masukkan delapan huruf di slip. Nama di layar harus sama dengan namamu.</p>
+                <p>Pindai kode QR yang disodorkan pengawas, atau ketik delapan huruf dari slip cadangan.</p>
 
                 <form method="POST" action="{{ route('landing.enter') }}">
                     @csrf

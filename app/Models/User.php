@@ -11,6 +11,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -63,6 +64,38 @@ class User extends Authenticatable implements FilamentUser
     public function canExport(): bool
     {
         return in_array($this->role, [UserRole::Admin, UserRole::Operator, UserRole::Peneliti], true);
+    }
+
+    public function isOperator(): bool
+    {
+        return $this->role === UserRole::Operator;
+    }
+
+    public function isPengawas(): bool
+    {
+        return $this->role === UserRole::Pengawas;
+    }
+
+    /** Jadwal ruang dan jam: hanya operator. Admin tidak menyusun pelaksanaan. */
+    public function canManageExamGroups(): bool
+    {
+        return $this->isOperator();
+    }
+
+    /** Paket ujian dan komposisi persen jenjang: hanya operator. */
+    public function canManagePackages(): bool
+    {
+        return $this->isOperator();
+    }
+
+    public function canProctorExamGroups(): bool
+    {
+        return in_array($this->role, [UserRole::Admin, UserRole::Operator, UserRole::Pengawas], true);
+    }
+
+    public function supervisedExamGroups(): HasMany
+    {
+        return $this->hasMany(ExamGroup::class, 'supervisor_id');
     }
 
     /** @return array<string, string> */

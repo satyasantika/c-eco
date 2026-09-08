@@ -9,11 +9,20 @@
     <title>C-ECO</title>
     {{-- Hanya bundel sisi siswa. Aset Filament tidak pernah dimuat di sini. --}}
     @vite(['resources/css/student.css', 'resources/js/student.js'])
+    @stack('head')
 </head>
 <body>
 <header class="bar">
     <strong>C-ECO</strong>
-    <span class="who">{{ $session->participant->display_name }}<br>{{ $session->participant->class_name }}</span>
+    <span class="who">
+        @if(! empty($waiting))
+            Menunggu jam tes
+        @elseif($session->participant && ! $session->isUnclaimed())
+            {{ $session->participant->display_name }}<br>{{ $session->participant->class_name }}
+        @else
+            Isi identitas dulu
+        @endif
+    </span>
 </header>
 
 <main class="wrap">

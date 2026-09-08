@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\SlipController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ProctorQrController;
 use App\Http\Controllers\StudentTestController;
 use App\Http\Middleware\RecordResponseMetrics;
 use App\Http\Middleware\SecurityHeaders;
@@ -22,6 +23,13 @@ Route::get('admin/slip/{config}', SlipController::class)
     ->middleware('auth')
     ->name('admin.slips');
 
+Route::middleware(['auth', WithoutLivewireAssets::class, SecurityHeaders::class])->group(function (): void {
+    Route::get('awas/{examGroup}', [ProctorQrController::class, 'show'])->name('proctor.qr');
+    Route::get('awas/{examGroup}/berikut', [ProctorQrController::class, 'current'])
+        ->middleware('throttle:proctor-qr')
+        ->name('proctor.qr.current');
+});
+
 /*
 | Alur siswa. Rate limit tetap dikunci ke token, bukan IP (aturan R2).
 */
@@ -34,6 +42,7 @@ Route::prefix('t/{token}')
     ])
     ->group(function (): void {
         Route::get('/', [StudentTestController::class, 'show'])->name('student.show');
+        Route::post('identitas', [StudentTestController::class, 'identify'])->name('student.identify');
         Route::post('mulai', [StudentTestController::class, 'consent'])->name('student.consent');
         Route::get('latihan', [StudentTestController::class, 'practice'])->name('student.practice');
         Route::post('tes', [StudentTestController::class, 'begin'])->name('student.test.begin');

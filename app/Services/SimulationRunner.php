@@ -30,7 +30,10 @@ use RuntimeException;
  */
 class SimulationRunner
 {
-    public function __construct(private readonly EapEstimator $estimator = new EapEstimator) {}
+    public function __construct(
+        private readonly EapEstimator $estimator = new EapEstimator,
+        private readonly ItemPool $pool = new ItemPool,
+    ) {}
 
     /**
      * @param  list<float>  $thetaPoints
@@ -173,10 +176,7 @@ class SimulationRunner
      */
     private function bank(TestConfig $config): array
     {
-        return Item::query()
-            ->active()
-            ->where('item_bank_id', $config->item_bank_id)
-            ->whereHas('parameters', fn ($q) => $q->where('is_active', true))
+        return $this->pool->query($config)
             ->with(['activeParameter', 'dimension:id,code'])
             ->orderBy('id')
             ->get()
