@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\CAT\ItemParameter as CatItemParameter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -45,5 +46,11 @@ class ItemParameter extends Model
     public function sessionItems(): HasMany
     {
         return $this->hasMany(SessionItem::class);
+    }
+
+    /** Satu-satunya jembatan dari Eloquent ke mesin IRT murni di App\CAT. */
+    public function toCat(): CatItemParameter
+    {
+        return new CatItemParameter($this->a, $this->b, $this->c);
     }
 }
