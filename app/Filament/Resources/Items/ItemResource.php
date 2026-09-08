@@ -9,11 +9,13 @@ use App\Filament\Resources\Items\Pages\ListItems;
 use App\Filament\Resources\Items\Schemas\ItemForm;
 use App\Filament\Resources\Items\Tables\ItemsTable;
 use App\Models\Item;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Bank soal: hanya baca dan sunting.
@@ -46,9 +48,28 @@ class ItemResource extends Resource
         return ItemsTable::configure($table);
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->canViewItems();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
+    }
+
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->canEditItems();
     }
 
     public static function canDelete(mixed $record): bool

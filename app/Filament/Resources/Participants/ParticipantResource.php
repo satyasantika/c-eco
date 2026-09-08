@@ -10,6 +10,7 @@ use App\Filament\Resources\Participants\Pages\ListParticipants;
 use App\Filament\Resources\Participants\Schemas\ParticipantForm;
 use App\Filament\Resources\Participants\Tables\ParticipantsTable;
 use App\Models\Participant;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -38,6 +39,18 @@ class ParticipantResource extends Resource
     public static function table(Table $table): Table
     {
         return ParticipantsTable::configure($table);
+    }
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->canManageRoster();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 
     public static function getPages(): array

@@ -45,6 +45,7 @@ class Monitor extends Page
             Action::make('export')
                 ->label('Ekspor CSV')
                 ->icon('heroicon-o-arrow-down-tray')
+                ->visible(fn (): bool => auth()->user()?->canExport() ?? false)
                 ->action(fn (): ?StreamedResponse => $this->export()),
         ];
     }

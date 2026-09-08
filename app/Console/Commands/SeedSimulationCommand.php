@@ -12,7 +12,7 @@ class SeedSimulationCommand extends Command
 {
     protected $signature = 'cat:seed-simulation {--students=20 : Jumlah siswa}';
 
-    protected $description = 'Membuat akun panel (semua peran) dan siswa simulasi beserta token';
+    protected $description = 'Membuat akun panel (admin, 2 operator, 9 pengawas, peneliti) dan siswa simulasi beserta token';
 
     public function handle(): int
     {
@@ -27,8 +27,8 @@ class SeedSimulationCommand extends Command
         $this->info('Masuk panel: '.$base.'/admin');
         $this->table(
             ['Peran', 'Email', 'Kata sandi'],
-            collect(SimulationSeeder::PANEL_USERS)->map(fn (array $u): array => [
-                explode('@', $u['email'])[0],
+            collect(SimulationSeeder::panelAccounts())->map(fn (array $u): array => [
+                $u['role']->label(),
                 $u['email'],
                 SimulationSeeder::PASSWORD,
             ])->all(),

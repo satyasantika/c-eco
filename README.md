@@ -38,7 +38,7 @@ make test
 | `cat:export` | Empat CSV untuk analisis di R |
 | `cat:backup` | Dump basis data terkompresi |
 | `cat:print-form` | Lembar soal dan lembar jawaban untuk lapis mundur L3 |
-| `cat:seed-simulation` | Akun panel semua peran + 20 siswa beserta token (lokal) |
+| `cat:seed-simulation` | Akun panel (1 admin, 2 operator, 9 pengawas, 1 peneliti) + 20 siswa beserta token (lokal) |
 
 ## Jalur mundur hari-H
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\TestSession;
 use App\Models\User;
 use Database\Seeders\SimulationSeeder;
@@ -27,7 +28,7 @@ class SimulationSeederTest extends TestCase
 
     public function test_every_panel_role_can_sign_in(): void
     {
-        foreach (SimulationSeeder::PANEL_USERS as $user) {
+        foreach (SimulationSeeder::panelAccounts() as $user) {
             $this->assertTrue(
                 Auth::attempt([
                     'email' => $user['email'],
@@ -38,7 +39,9 @@ class SimulationSeederTest extends TestCase
             Auth::logout();
         }
 
-        $this->assertSame(count(SimulationSeeder::PANEL_USERS), User::query()->count());
+        $this->assertSame(13, User::query()->where('is_active', true)->count());
+        $this->assertSame(2, User::query()->where('is_active', true)->where('role', UserRole::Operator)->count());
+        $this->assertSame(9, User::query()->where('is_active', true)->where('role', UserRole::Pengawas)->count());
     }
 
     public function test_twenty_students_have_unique_tokens(): void
@@ -57,7 +60,7 @@ class SimulationSeederTest extends TestCase
 
     public function test_a_pengawas_can_open_the_monitor(): void
     {
-        $this->actingAs(User::query()->where('email', 'pengawas@c-eco.test')->firstOrFail())
+        $this->actingAs(User::query()->where('email', 'pengawas01@c-eco.test')->firstOrFail())
             ->get('/admin/monitor')
             ->assertOk();
     }

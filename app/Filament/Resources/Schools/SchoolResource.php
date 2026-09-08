@@ -10,6 +10,7 @@ use App\Filament\Resources\Schools\Pages\ListSchools;
 use App\Filament\Resources\Schools\Schemas\SchoolForm;
 use App\Filament\Resources\Schools\Tables\SchoolsTable;
 use App\Models\School;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -38,6 +39,18 @@ class SchoolResource extends Resource
     public static function table(Table $table): Table
     {
         return SchoolsTable::configure($table);
+    }
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->canManageRoster();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 
     public static function getPages(): array

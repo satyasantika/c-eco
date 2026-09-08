@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TestConfig;
 use App\Models\TestSession;
+use App\Models\User;
 use App\Services\QrCodeRenderer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -20,6 +21,9 @@ class SlipController extends Controller
 
     public function __invoke(Request $request, TestConfig $config): View
     {
+        $user = $request->user();
+        abort_unless($user instanceof User && $user->canManageRoster(), 403);
+
         $sessions = TestSession::query()
             ->where('test_config_id', $config->id)
             ->when($request->query('class'), fn ($q, $class) => $q->whereRelation('participant', 'class_name', 'like', "%{$class}%"))

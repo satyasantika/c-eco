@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\ItemBank;
 use App\Models\Participant;
 use App\Models\School;
@@ -11,27 +12,41 @@ use App\Models\TestConfig;
 use App\Models\User;
 use App\Services\TokenIssuer;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 /**
  * Akun panel + 20 siswa untuk uji di mesin lokal.
  *
- * Panel tidak membedakan izin per peran: keempat akun masuk ke /admin yang
- * sama. Yang berbeda hanya emailnya, supaya manual peran bisa dicoba tanpa
- * saling menimpa sesi browser.
+ * Satu admin pusat, dua operator, sembilan pengawas (satu per rombongan
+ * simulasi), satu peneliti. Admin saja yang boleh menambah/menonaktifkan
+ * akun staf dari panel.
  */
 class SimulationSeeder extends Seeder
 {
     public const PASSWORD = 'ekonomi1234';
 
-    /** @var list<array{email: string, name: string}> */
-    public const PANEL_USERS = [
-        ['email' => 'admin@c-eco.test', 'name' => 'Admin C-ECO'],
-        ['email' => 'pengawas@c-eco.test', 'name' => 'Pengawas Ruangan'],
-        ['email' => 'operator@c-eco.test', 'name' => 'Operator C-ECO'],
-        ['email' => 'peneliti@c-eco.test', 'name' => 'Peneliti C-ECO'],
-    ];
+    /**
+     * @return list<array{email: string, name: string, role: UserRole}>
+     */
+    public static function panelAccounts(): array
+    {
+        $users = [
+            ['email' => 'admin@c-eco.test', 'name' => 'Admin C-ECO', 'role' => UserRole::Admin],
+            ['email' => 'operator1@c-eco.test', 'name' => 'Operator 1', 'role' => UserRole::Operator],
+            ['email' => 'operator2@c-eco.test', 'name' => 'Operator 2', 'role' => UserRole::Operator],
+            ['email' => 'peneliti@c-eco.test', 'name' => 'Peneliti C-ECO', 'role' => UserRole::Peneliti],
+        ];
+
+        for ($i = 1; $i <= 9; $i++) {
+            $users[] = [
+                'email' => sprintf('pengawas%02d@c-eco.test', $i),
+                'name' => sprintf('Pengawas %02d', $i),
+                'role' => UserRole::Pengawas,
+            ];
+        }
+
+        return $users;
+    }
 
     public function run(): void
     {
@@ -41,16 +56,23 @@ class SimulationSeeder extends Seeder
 
     public function panelUsers(): void
     {
-        $password = Hash::make(self::PASSWORD);
-
-        foreach (self::PANEL_USERS as $user) {
+        foreach (self::panelAccounts() as $user) {
             User::query()->updateOrCreate(
                 ['email' => $user['email']],
-                ['name' => $user['name'], 'password' => $password],
+                [
+                    'name' => $user['name'],
+                    'password' => self::PASSWORD,
+                    'role' => $user['role'],
+                    'is_active' => true,
+                ],
             );
         }
 
-        $this->command?->info('Panel: 4 akun, kata sandi '.self::PASSWORD);
+        User::query()
+            ->whereIn('email', ['operator@c-eco.test', 'pengawas@c-eco.test'])
+            ->update(['is_active' => false]);
+
+        $this->command?->info('Panel: 1 admin, 2 operator, 9 pengawas, 1 peneliti. Kata sandi '.self::PASSWORD);
     }
 
     public function students(int $n = 20): int
