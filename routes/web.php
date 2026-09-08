@@ -2,10 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\SlipController;
 use App\Http\Controllers\StudentTestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'));
+
+// Middleware auth bawaan Laravel mengarahkan tamu ke route('login'); di sini
+// satu-satunya halaman masuk adalah milik panel Filament.
+Route::get('login', fn () => redirect()->route('filament.admin.auth.login'))->name('login');
+
+// Slip memuat token akses setiap peserta — jangan pernah dibuka tanpa login.
+Route::get('admin/slip/{config}', SlipController::class)
+    ->middleware('auth')
+    ->name('admin.slips');
 
 /*
 | Alur siswa. Rate limit tetap dikunci ke token, bukan IP (aturan R2).
