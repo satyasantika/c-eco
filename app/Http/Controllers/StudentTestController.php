@@ -8,6 +8,7 @@ use App\Exceptions\SequenceConflictException;
 use App\Exceptions\SessionCompletedException;
 use App\Models\TestSession;
 use App\Services\CatSession;
+use App\Services\StudentFeedbackBuilder;
 use App\Support\SessionState;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -24,14 +25,20 @@ use Illuminate\Support\Carbon;
  */
 class StudentTestController extends Controller
 {
-    public function __construct(private readonly CatSession $cat) {}
+    public function __construct(
+        private readonly CatSession $cat,
+        private readonly StudentFeedbackBuilder $feedback,
+    ) {}
 
     public function show(string $token): View
     {
         $session = $this->session($token);
 
         if ($session->status === 'completed') {
-            return view('student.done', ['session' => $session]);
+            return view('student.done', [
+                'session' => $session,
+                'feedback' => $this->feedback->for($session),
+            ]);
         }
 
         if ($session->status === 'pending') {
@@ -110,7 +117,9 @@ class StudentTestController extends Controller
     private function fragment(SessionState $state, string $token): View
     {
         if ($state->item === null) {
-            return view('student.partials.finished');
+            return view('student.partials.finished', [
+                'feedback' => $this->feedback->for($state->session),
+            ]);
         }
 
         return view('student.partials.item', ['item' => $state->item, 'token' => $token]);
@@ -121,6 +130,9 @@ class StudentTestController extends Controller
         return view('student.test', [
             'session' => $state->session,
             'item' => $state->item,
+            'feedback' => $state->item === null
+                ? $this->feedback->for($state->session)
+                : null,
         ]);
     }
 

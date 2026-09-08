@@ -9,7 +9,7 @@
         @if ($item)
             @include('student.partials.item', ['item' => $item, 'token' => $session->access_token])
         @else
-            @include('student.partials.finished')
+            @include('student.partials.finished', ['feedback' => $feedback])
         @endif
     </div>
 

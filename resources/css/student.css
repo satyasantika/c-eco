@@ -1,39 +1,32 @@
 /*
  * Sisi siswa: CSS tulis tangan, tanpa Tailwind dan tanpa satu pun aset dari
- * luar (aturan R1). Siswa membayar kuotanya sendiri, jadi berkas ini sengaja
- * kecil dan hanya memuat apa yang dipakai layar tes.
+ * luar (aturan R1). Palet kertas ujian, selalu terang — tidak mengikuti
+ * prefers-color-scheme. Siswa membayar kuotanya sendiri, jadi berkas ini
+ * sengaja kecil dan hanya memuat apa yang dipakai layar tes.
  */
 
 :root {
-  --bg: #ffffff;
-  --fg: #14181f;
-  --muted: #5b6472;
-  --line: #d7dce4;
-  --card: #ffffff;
+  --bg: #f4f7f3;
+  --fg: #1a2b22;
+  --muted: #5a6b62;
+  --line: #c5d2c8;
+  --card: #fffcf7;
   --accent: #1c5d3a;
-  --accent-fg: #ffffff;
-  --selected-bg: #e7f3ec;
+  --accent-fg: #f4f7f3;
+  --selected-bg: #e4eee7;
   --warn-bg: #fff4e0;
   --warn-fg: #6b4a10;
-  --ok-bg: #e7f3ec;
+  --ok-bg: #e4eee7;
   --ok-fg: #1c5d3a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12161c;
-    --fg: #eef1f5;
-    --muted: #a4adbb;
-    --line: #2c3543;
-    --card: #1a212a;
-    --accent: #4ea87a;
-    --accent-fg: #08130d;
-    --selected-bg: #1d3529;
-    --warn-bg: #3a2f18;
-    --warn-fg: #f0d39a;
-    --ok-bg: #1d3529;
-    --ok-fg: #9fd9ba;
-  }
+  --wash: #e4eee7;
+  --dim-fluency: #1c5d3a;
+  --dim-flexibility: #2a7a52;
+  --dim-originality: #b56a1c;
+  --dim-elaboration: #3d6b8a;
+  --dim-solutif: #7a3d6b;
+  --dim-adaptif: #6b5a2a;
+  --dim-prediktif: #3a4a7a;
+  --dim-lain: #5a6b62;
 }
 
 * {
@@ -42,6 +35,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  color-scheme: light;
 }
 
 body {
@@ -320,4 +314,158 @@ fieldset {
   width: 22px;
   height: 22px;
   margin-top: 2px;
+}
+
+.result {
+  margin: 24px 0 0;
+}
+
+.result-band {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  margin: 0 0 20px;
+  background: var(--card);
+}
+
+.result-kicker {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.result-label {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.wright {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 0 auto 12px;
+}
+
+.wright-axis,
+.wright-tick {
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+
+.wright-label {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.wright-pole {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.wright-band {
+  fill: var(--accent);
+  opacity: 0.14;
+}
+
+.wright-person {
+  fill: var(--accent);
+}
+
+.wright-person-label {
+  fill: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wright-item {
+  stroke: #fffcf7;
+  stroke-width: 1;
+}
+
+.wright-item.dim-fluency { fill: var(--dim-fluency); }
+.wright-item.dim-flexibility { fill: var(--dim-flexibility); }
+.wright-item.dim-originality { fill: var(--dim-originality); }
+.wright-item.dim-elaboration { fill: var(--dim-elaboration); }
+.wright-item.dim-solutif { fill: var(--dim-solutif); }
+.wright-item.dim-adaptif { fill: var(--dim-adaptif); }
+.wright-item.dim-prediktif { fill: var(--dim-prediktif); }
+.wright-item.dim-lain { fill: var(--dim-lain); }
+
+.legend {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.swatch.dim-fluency { background: var(--dim-fluency); }
+.swatch.dim-flexibility { background: var(--dim-flexibility); }
+.swatch.dim-originality { background: var(--dim-originality); }
+.swatch.dim-elaboration { background: var(--dim-elaboration); }
+.swatch.dim-solutif { background: var(--dim-solutif); }
+.swatch.dim-adaptif { background: var(--dim-adaptif); }
+.swatch.dim-prediktif { background: var(--dim-prediktif); }
+.swatch.dim-lain { background: var(--dim-lain); }
+
+.info-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.info-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.info-meta {
+  font-size: 15px;
+}
+
+.info-bar {
+  display: block;
+  width: 100%;
+  height: 10px;
+  grid-column: 1 / -1;
+}
+
+.info-track {
+  fill: var(--wash);
+}
+
+.info-fill {
+  fill: var(--accent);
+}
+
+.info-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 14px;
 }

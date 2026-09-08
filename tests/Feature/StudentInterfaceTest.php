@@ -141,11 +141,12 @@ class StudentInterfaceTest extends TestCase
         }
     }
 
-    public function test_a_finished_session_shows_thanks_without_a_score(): void
+    public function test_a_finished_session_shows_wright_map_and_item_information(): void
     {
         $session = $this->startedSession();
 
         $guard = 0;
+        $last = null;
 
         while (TestSession::query()->find($session->id)->status !== 'completed' && $guard++ < 60) {
             $pending = SessionItem::query()
@@ -158,7 +159,7 @@ class StudentInterfaceTest extends TestCase
                 break;
             }
 
-            $this->post("/t/{$session->access_token}/jawab", [
+            $last = $this->post("/t/{$session->access_token}/jawab", [
                 'sequence' => $pending->sequence,
                 'option' => array_key_first($pending->option_permutation_json),
             ])->assertOk();
@@ -167,9 +168,20 @@ class StudentInterfaceTest extends TestCase
         $html = (string) $this->get("/t/{$session->access_token}")->assertOk()->getContent();
 
         $this->assertStringContainsString('Terima kasih', $html);
+        $this->assertStringContainsString('Wright map', $html);
+        $this->assertStringContainsString('Tes informasi butir', $html);
+        $this->assertStringContainsString('Gambaran kemampuan berpikir kreatif', $html);
+        $this->assertStringContainsString('color-scheme" content="light"', $html);
         $this->assertStringNotContainsString('t_score', $html);
         $this->assertStringNotContainsString('Skor', $html);
         $this->assertStringNotContainsString('theta', $html);
+        $this->assertStringNotContainsString('is_correct', $html);
+
+        $this->assertNotNull($last);
+        $fragment = (string) $last->getContent();
+        $this->assertStringContainsString('Tes informasi butir', $fragment);
+        $this->assertStringContainsString('Wright map', $fragment);
+        $this->assertStringNotContainsString('<html', $fragment);
     }
 
     private function consented(): TestSession
