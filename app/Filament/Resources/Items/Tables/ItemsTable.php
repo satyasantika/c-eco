@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Items\Tables;
 
 use App\Models\Item;
+use App\Models\ItemBank;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -20,6 +21,7 @@ class ItemsTable
             ->columns([
                 TextColumn::make('code')->label('Kode')->searchable()->sortable(),
                 TextColumn::make('itemBank.grade')->label('Jenjang')->badge()->sortable(),
+                TextColumn::make('itemBank.version')->label('Paket')->toggleable(),
                 TextColumn::make('dimension.name')->label('Dimensi')->badge()->searchable(),
                 TextColumn::make('topic')->label('Topik')->limit(40)->searchable()->toggleable(),
                 TextColumn::make('activeParameter.b')
@@ -40,7 +42,14 @@ class ItemsTable
                 TextColumn::make('status')->label('Status')->badge()->sortable(),
             ])
             ->filters([
-                SelectFilter::make('item_bank_id')->label('Jenjang')->relationship('itemBank', 'grade'),
+                SelectFilter::make('item_bank_id')
+                    ->label('Paket')
+                    ->options(fn (): array => ItemBank::query()
+                        ->orderBy('grade')
+                        ->orderBy('version')
+                        ->get()
+                        ->mapWithKeys(fn (ItemBank $bank): array => [$bank->id => $bank->label()])
+                        ->all()),
                 SelectFilter::make('dimension_id')->label('Dimensi')->relationship('dimension', 'name'),
                 SelectFilter::make('status')->label('Status')->options(['active' => 'Aktif', 'retired' => 'Dipensiunkan']),
                 Filter::make('needs_review')

@@ -41,4 +41,9 @@ class ItemBank extends Model
     {
         return $this->hasMany(TestSession::class);
     }
+
+    public function label(): string
+    {
+        return "{$this->grade} · {$this->version}";
+    }
 }

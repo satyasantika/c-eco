@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Items;
+namespace App\Filament\Resources\ItemBanks;
 
-use App\Filament\Resources\Items\Pages\EditItem;
-use App\Filament\Resources\Items\Pages\ListItems;
-use App\Filament\Resources\Items\Schemas\ItemForm;
-use App\Filament\Resources\Items\Tables\ItemsTable;
-use App\Models\Item;
+use App\Filament\Resources\ItemBanks\Pages\EditItemBank;
+use App\Filament\Resources\ItemBanks\Pages\ListItemBanks;
+use App\Filament\Resources\ItemBanks\Schemas\ItemBankForm;
+use App\Filament\Resources\ItemBanks\Tables\ItemBanksTable;
+use App\Models\ItemBank;
 use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,36 +18,35 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Bank soal: baca, sunting, dan impor paket.
+ * Paket soal = satu baris item_banks (jenjang + versi).
  *
- * Butir tidak diketik satu per satu dan tidak pernah dihapus — session_items
- * menunjuk kepadanya. Paket baru masuk lewat impor JSON. Butir yang tidak
- * layak pakai dipensiunkan lewat kolom status.
+ * Butir tidak diketik di sini. Paket baru masuk lewat impor JSON.
+ * Paket tidak dihapus: sesi dan parameter menunjuk kepadanya.
  */
-class ItemResource extends Resource
+class ItemBankResource extends Resource
 {
-    protected static ?string $model = Item::class;
+    protected static ?string $model = ItemBank::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
-    protected static ?string $navigationLabel = 'Bank Soal';
+    protected static ?string $navigationLabel = 'Paket Soal';
 
-    protected static ?string $modelLabel = 'Butir';
+    protected static ?string $modelLabel = 'Paket soal';
 
-    protected static ?string $pluralModelLabel = 'Butir';
+    protected static ?string $pluralModelLabel = 'Paket soal';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Bank soal';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 29;
 
     public static function form(Schema $schema): Schema
     {
-        return ItemForm::configure($schema);
+        return ItemBankForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return ItemsTable::configure($table);
+        return ItemBanksTable::configure($table);
     }
 
     public static function canViewAny(): bool
@@ -87,8 +86,8 @@ class ItemResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListItems::route('/'),
-            'edit' => EditItem::route('/{record}/edit'),
+            'index' => ListItemBanks::route('/'),
+            'edit' => EditItemBank::route('/{record}/edit'),
         ];
     }
 }
