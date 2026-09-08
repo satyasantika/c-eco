@@ -5,7 +5,15 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            // Bundel sisi siswa dipisah dari app.*: ia tidak boleh ikut membawa
+            // Tailwind atau apa pun milik halaman lain. Anggaran R1 dihitung
+            // dari berkas-berkas student.* saja.
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                'resources/css/student.css',
+                'resources/js/student.js',
+            ],
             refresh: true,
         }),
         tailwindcss(),
