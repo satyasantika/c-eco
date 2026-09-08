@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Admin C-ECO', 'password' => Hash::make('password')],
         );
 
-        $this->call(ItemBankSeeder::class);
+        $this->call([
+            ItemBankSeeder::class,
+            TestConfigSeeder::class,
+        ]);
     }
 }
