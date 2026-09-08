@@ -11,13 +11,16 @@
     <p>Panjang tes berbeda-beda untuk tiap orang karena soal menyesuaikan jawabanmu. Kira-kira 20–30 menit.</p>
 
     <div class="note">
-        <p style="margin:0 0 8px"><strong>Tentang kuota</strong></p>
-        <p style="margin:0">Tes ini memakai sekitar <strong>1 MB</strong> kuota data. Tidak ada video dan tidak ada gambar berat.</p>
+        <p><strong>Tentang kuota</strong></p>
+        {{-- Angka ini hasil pengukuran, bukan perkiraan: 187 KB tanpa kompresi
+             di lingkungan uji, sekitar 80 KB lewat gzip produksi
+             (docs/LOADTEST-FINDINGS.md). Dibulatkan ke atas untuk siswa. --}}
+        <p>Tes ini memakai sekitar <strong>200 KB</strong> kuota data — kurang dari satu foto. Tidak ada video dan tidak ada gambar berat.</p>
     </div>
 
     <div class="note">
-        <p style="margin:0 0 8px"><strong>Kalau koneksi putus</strong></p>
-        <p style="margin:0">Jawabanmu disimpan di HP dan dikirim ulang otomatis begitu sinyal kembali.
+        <p><strong>Kalau koneksi putus</strong></p>
+        <p>Jawabanmu disimpan di HP dan dikirim ulang otomatis begitu sinyal kembali.
             Kamu tidak perlu mengulang soal yang sudah dijawab. Kalau HP mati, buka lagi tautan yang sama.</p>
     </div>
 

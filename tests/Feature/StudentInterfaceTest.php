@@ -30,7 +30,8 @@ class StudentInterfaceTest extends TestCase
         $this->get("/t/{$session->access_token}")
             ->assertOk()
             ->assertSee('Saya bersedia mengikuti tes ini.')
-            ->assertSee('1 MB', false)
+            // Angka kuota diukur, bukan dikira-kira (docs/LOADTEST-FINDINGS.md).
+            ->assertSee('200 KB', false)
             ->assertSee('tidak bisa kembali', false);
     }
 

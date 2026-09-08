@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Middleware\RecordResponseMetrics;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,9 +15,11 @@ use Illuminate\Support\Facades\Route;
 | limiter berbasis IP akan memblokir satu kelas penuh (aturan R2).
 */
 
-Route::prefix('t/{token}')->middleware(RecordResponseMetrics::class)->group(function (): void {
-    Route::post('start', [SessionController::class, 'start'])->middleware('throttle:cat-start');
-    Route::post('answer', [SessionController::class, 'answer'])->middleware('throttle:cat-answer');
-    Route::post('event', [SessionController::class, 'event'])->middleware('throttle:cat-event');
-    Route::get('state', [SessionController::class, 'state'])->middleware('throttle:cat-state');
-});
+Route::prefix('t/{token}')
+    ->middleware([RecordResponseMetrics::class, SecurityHeaders::class])
+    ->group(function (): void {
+        Route::post('start', [SessionController::class, 'start'])->middleware('throttle:cat-start');
+        Route::post('answer', [SessionController::class, 'answer'])->middleware('throttle:cat-answer');
+        Route::post('event', [SessionController::class, 'event'])->middleware('throttle:cat-event');
+        Route::get('state', [SessionController::class, 'state'])->middleware('throttle:cat-state');
+    });

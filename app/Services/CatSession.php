@@ -41,6 +41,15 @@ class CatSession
      */
     private const PERMUTATION_STREAM_OFFSET = 7919;
 
+    /**
+     * Percobaan ulang bila InnoDB melaporkan deadlock. Deadlock bukan galat
+     * logika: dua sesi kebetulan menyentuh baris yang sama dengan urutan
+     * berbeda, dan yang kalah tinggal mengulang. Tanpa ini, siswa melihat 500
+     * pada jawaban yang sebenarnya sah. Pengecualian lain — konflik urutan,
+     * sesi selesai — tidak diulang, hanya deadlock.
+     */
+    private const TRANSACTION_ATTEMPTS = 3;
+
     public function __construct(
         private readonly EapEstimator $estimator = new EapEstimator,
         private readonly SessionReporter $reporter = new SessionReporter,
@@ -76,7 +85,7 @@ class CatSession
             }
 
             return new SessionState($session, $this->present($pending));
-        });
+        }, attempts: self::TRANSACTION_ATTEMPTS);
     }
 
     /**
@@ -106,7 +115,7 @@ class CatSession
             $this->score($session, $sessionItem, $displayLabel, $meta);
 
             return $this->advance($session);
-        });
+        }, attempts: self::TRANSACTION_ATTEMPTS);
     }
 
     /**
@@ -369,7 +378,7 @@ class CatSession
     }
 
     /**
-     * @return array<string, string>  label tampilan => label asli
+     * @return array<string, string> label tampilan => label asli
      */
     private function permutation(TestSession $session, Item $item, int $sequence): array
     {
@@ -458,21 +467,42 @@ class CatSession
             ->all();
     }
 
+    /**
+     * Menaikkan pencacah paparan setelah transaksi sesi commit.
+     *
+     * Dua hal disengaja di sini, keduanya hasil uji beban 100 peserta serentak
+     * (docs/LOADTEST-FINDINGS.md):
+     *
+     * 1. Satu pernyataan INSERT .. ON DUPLICATE KEY UPDATE, bukan increment
+     *    lalu insert kalau nol baris terpengaruh. Pola lama punya celah balapan:
+     *    dua sesi sama-sama melihat nol baris dan sama-sama menyisipkan.
+     *
+     * 2. Dijalankan SETELAH commit, bukan di dalam transaksi sesi. Pemilihan
+     *    adaptif memusat pada butir yang sama, jadi banyak sesi menyentuh baris
+     *    pencacah yang sama dengan urutan berbeda; ditahan di dalam transaksi
+     *    panjang, itu menghasilkan deadlock InnoDB dan jawaban siswa gagal.
+     *    Sebagai pernyataan tunggal yang autocommit, kuncinya lepas seketika.
+     *
+     * Konsekuensinya pencacah bisa tertinggal sepersekian detik dari sesi.
+     * Itu tidak apa-apa: angka ini mengendalikan paparan secara statistik,
+     * bukan menentukan benar-salah satu jawaban.
+     */
     private function bumpExposure(TestSession $session, int $itemId, string $column): void
     {
-        $affected = DB::table('exposure_counters')
-            ->where('test_config_id', $session->test_config_id)
-            ->where('item_id', $itemId)
-            ->increment($column);
+        $configId = $session->test_config_id;
 
-        if ($affected === 0) {
-            DB::table('exposure_counters')->insert([
-                'test_config_id' => $session->test_config_id,
-                'item_id' => $itemId,
-                'times_selected' => $column === 'times_selected' ? 1 : 0,
-                'times_administered' => $column === 'times_administered' ? 1 : 0,
-            ]);
-        }
+        DB::afterCommit(static function () use ($configId, $itemId, $column): void {
+            DB::table('exposure_counters')->upsert(
+                [[
+                    'test_config_id' => $configId,
+                    'item_id' => $itemId,
+                    'times_selected' => $column === 'times_selected' ? 1 : 0,
+                    'times_administered' => $column === 'times_administered' ? 1 : 0,
+                ]],
+                ['test_config_id', 'item_id'],
+                [$column => DB::raw("`{$column}` + 1")],
+            );
+        });
     }
 
     /**

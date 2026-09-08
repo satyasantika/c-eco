@@ -35,8 +35,8 @@ return [
     | pada server pelaksanaan.
     */
     'backup' => [
-        'enabled' => (bool) env('CAT_BACKUP_ENABLED', false),
-        'keep' => (int) env('CAT_BACKUP_KEEP', 48),
+        'enabled' => (bool) env('BACKUP_INTERVAL_ENABLED', false),
+        'keep' => (int) env('BACKUP_KEEP', 48),
     ],
 
 ];

@@ -243,6 +243,16 @@ button[disabled] {
   background: var(--card);
 }
 
+/* Ditulis di sini, bukan sebagai atribut style, supaya CSP sisi siswa bisa
+   melarang gaya sebaris sama sekali (lihat SecurityHeaders). */
+.note p {
+  margin: 0;
+}
+
+.note p + p {
+  margin-top: 8px;
+}
+
 .banner {
   position: fixed;
   left: 12px;

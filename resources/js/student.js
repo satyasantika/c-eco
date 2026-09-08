@@ -12,6 +12,13 @@ import htmx from 'htmx.org';
 
 window.htmx = htmx;
 
+// htmx memanggil eval() untuk atribut hx-on:*, hx-vals:js, dan hx-headers:js.
+// Kita tidak memakai satu pun, dan CSP halaman siswa melarang 'unsafe-eval'
+// (lihat App\Http\Middleware\SecurityHeaders). Mematikannya di sini membuat
+// atribut semacam itu gagal terang-terangan saat dikembangkan, bukan diam-diam
+// diblokir peramban siswa pada hari-H.
+htmx.config.allowEval = false;
+
 const root = document.getElementById('tes');
 
 if (root) {
