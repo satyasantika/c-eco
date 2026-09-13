@@ -9,6 +9,7 @@ use App\Services\ExamSimulationPurger;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class ExamSimulation extends Model
 {
@@ -66,6 +67,37 @@ class ExamSimulation extends Model
     public function label(): string
     {
         return "{$this->name} · {$this->students} siswa · {$this->rooms} kelas";
+    }
+
+    public function scaleLabel(): string
+    {
+        return "{$this->students} siswa di {$this->rooms} ruang";
+    }
+
+    public function mixLabel(): string
+    {
+        return "{$this->grade_share_x}% X, {$this->grade_share_xi}% XI, {$this->grade_share_xii}% XII";
+    }
+
+    public function staffLabel(): string
+    {
+        return "{$this->operators_count} operator dan {$this->pengawas_count} pengawas";
+    }
+
+    public function whenLabel(): string
+    {
+        return $this->starts_at
+            ->timezone((string) config('app.timezone'))
+            ->translatedFormat('l, d F Y').', pukul '.$this->starts_at
+            ->timezone((string) config('app.timezone'))
+            ->format('H:i');
+    }
+
+    public function hasStarted(?Carbon $now = null): bool
+    {
+        $now ??= Carbon::now();
+
+        return $this->starts_at !== null && $now->greaterThanOrEqualTo($this->starts_at);
     }
 
     public function delete(): ?bool

@@ -23,15 +23,15 @@ class ExamSimulationForm
         $maxItems = (int) TestConfigProvisioner::adaptiveAttributes()['max_items'];
 
         return $schema->components([
-            Section::make('Gelombang')
-                ->description('Simulasi ini terpisah dari tes asli. Hapus gelombang untuk menghilangkan akun, jadwal, dan paketnya sekaligus.')
+            Section::make('Denah')
+                ->description('Satu gelombang, satu jam. Siswa dibagi merata ke ruang. Hapus gelombang jika tes asli sudah tidak memakainya.')
                 ->schema([
                     Select::make('preset')
                         ->label('Siap pakai')
                         ->options([
-                            '20' => '20 siswa · 1 kelas',
-                            '100' => '100 siswa · 4 kelas',
-                            '300' => '300 siswa · 10 kelas',
+                            '20' => '20 siswa, 1 kelas',
+                            '100' => '100 siswa, 4 kelas',
+                            '300' => '300 siswa, 10 kelas',
                             'custom' => 'Atur sendiri',
                         ])
                         ->default('20')
@@ -57,6 +57,7 @@ class ExamSimulationForm
                         ->required()
                         ->maxLength(255)
                         ->default('Uji lapangan')
+                        ->columnSpanFull()
                         ->helperText('Muncul di daftar simulasi dan nama kelas.'),
                     TextInput::make('students')
                         ->label('Jumlah siswa')
@@ -81,12 +82,13 @@ class ExamSimulationForm
                         ->seconds(false)
                         ->native(false)
                         ->default(now()->addHour()->startOfHour())
+                        ->columnSpanFull()
                         ->helperText('Jam server. Kartu QR dan halaman siswa tertutup sebelum jam ini.'),
                 ])
                 ->columns(2),
 
-            Section::make('Akun khusus simulasi')
-                ->description('Operator dan pengawas baru, email sim{id}.op01@c-eco.test / sim{id}.pw01@c-eco.test. Bukan akun tes asli.')
+            Section::make('Daftar jaga')
+                ->description('Akun baru, email sim{id}.op01@c-eco.test dan sim{id}.pw01@c-eco.test. Bukan akun tes asli.')
                 ->schema([
                     TextInput::make('operators_count')
                         ->label('Jumlah operator')
@@ -110,12 +112,13 @@ class ExamSimulationForm
                         ->required()
                         ->minLength(8)
                         ->default(ExamSimulationBuilder::DEFAULT_PASSWORD)
+                        ->columnSpanFull()
                         ->helperText('Disimpan di catatan gelombang supaya bisa dibagikan ke pengawas uji.'),
                 ])
                 ->columns(2),
 
-            Section::make('Paket soal simulasi')
-                ->description('Paket baru, hanya untuk gelombang ini. Persen harus berjumlah 100. Butir tidak disalin dari bank (R7).')
+            Section::make('Isi paket')
+                ->description('Persen X, XI, dan XII harus berjumlah 100. Butir diambil dari bank, tidak disalin.')
                 ->schema([
                     TextInput::make('grade_share_x')
                         ->label('Persen jenjang X')
@@ -152,6 +155,7 @@ class ExamSimulationForm
                         ->minValue($maxItems)
                         ->default(30)
                         ->live()
+                        ->columnSpanFull()
                         ->helperText(fn (Get $get): string => MixedPackageComposer::preview(
                             (int) $get('grade_share_x'),
                             (int) $get('grade_share_xi'),
@@ -159,7 +163,7 @@ class ExamSimulationForm
                             $get('pool_size') !== null && $get('pool_size') !== '' ? (int) $get('pool_size') : null,
                         )),
                 ])
-                ->columns(2),
+                ->columns(3),
         ]);
     }
 

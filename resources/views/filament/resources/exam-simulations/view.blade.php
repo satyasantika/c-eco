@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     @php
-        /** @var \App\Models\ExamSimulation $simulation */
-        $simulation = $this->getRecord()->loadMissing([
+        /** @var \App\Models\ExamSimulation $wave */
+        $wave = $this->getRecord()->loadMissing([
             'users',
             'examGroups.supervisor',
             'examGroups.testSessions',
@@ -9,48 +9,42 @@
             'school',
         ]);
         $allocation = $this->allocation();
-        $config = $simulation->testConfig;
-        $items = $config?->packageItems ?? collect();
+        $items = $wave->testConfig?->packageItems ?? collect();
     @endphp
 
-    <div class="space-y-6">
-        <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5">
-            <h2 class="text-base font-semibold text-gray-950">Gelombang</h2>
-            <p class="mt-2 text-sm text-gray-700">
-                {{ $simulation->students }} siswa · {{ $simulation->rooms }} kelas
-                · mulai {{ $simulation->starts_at->timezone(config('app.timezone'))->format('d M Y H:i') }}
-                · sekolah {{ $simulation->school?->name }}
+    <div class="ceco-roll">
+        <section class="ceco-roll-paper">
+            <p>
+                {{ $wave->students }} siswa menempati {{ $wave->rooms }} ruang
+                di {{ $wave->school?->name }}.
+                Paket {{ $allocation['X'] }} X, {{ $allocation['XI'] }} XI, {{ $allocation['XII'] }} XII
+                ({{ $items->count() }} dari bank).
+                {{ $wave->hasStarted() ? 'Pengawas boleh menyodorkan kartu QR.' : 'Kartu QR masih tertutup sampai jam server.' }}
             </p>
-            <p class="mt-1 text-sm text-gray-600">
-                Paket: {{ $config?->name }} · {{ $simulation->grade_share_x }}% X
-                · {{ $simulation->grade_share_xi }}% XI
-                · {{ $simulation->grade_share_xii }}% XII
-                · {{ $simulation->pool_size }} butir
-                ({{ $allocation['X'] }} X + {{ $allocation['XI'] }} XI + {{ $allocation['XII'] }} XII).
-                Terambil {{ $items->count() }} butir dari bank, tidak disalin.
-            </p>
+
+            <div class="ceco-roll-pass">
+                <p>Sandi bersama, untuk pengawas dan operator gelombang ini saja.</p>
+                <p class="ceco-roll-passphrase">{{ $wave->plain_password }}</p>
+            </div>
         </section>
 
-        <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5">
-            <h2 class="text-base font-semibold text-gray-950">Akun khusus simulasi</h2>
-            <p class="mt-2 text-sm text-gray-600">
-                Kata sandi bersama: <strong>{{ $simulation->plain_password }}</strong>
-            </p>
-            <div class="mt-4 overflow-x-auto">
-                <table class="w-full text-sm">
+        <section class="ceco-roll-paper">
+            <h2>Daftar jaga</h2>
+            <div class="ceco-roll-register-wrap">
+                <table class="ceco-roll-register">
                     <thead>
-                        <tr class="text-left text-gray-500">
-                            <th class="py-2 pr-4">Peran</th>
-                            <th class="py-2 pr-4">Nama</th>
-                            <th class="py-2">Email</th>
+                        <tr>
+                            <th>Tugas</th>
+                            <th>Nama</th>
+                            <th>Masuk dengan</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($simulation->users->sortBy('email') as $user)
-                            <tr class="border-t border-gray-100">
-                                <td class="py-2 pr-4">{{ $user->role->label() }}</td>
-                                <td class="py-2 pr-4">{{ $user->name }}</td>
-                                <td class="py-2 font-mono">{{ $user->email }}</td>
+                        @foreach ($wave->users->sortBy('email') as $user)
+                            <tr>
+                                <td>{{ $user->role->label() }}</td>
+                                <td>{{ $user->name }}</td>
+                                <td>{{ $user->email }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -58,36 +52,30 @@
             </div>
         </section>
 
-        <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5">
-            <h2 class="text-base font-semibold text-gray-950">Kelas dan kartu QR</h2>
-            <div class="mt-4 overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-500">
-                            <th class="py-2 pr-4">Kelas</th>
-                            <th class="py-2 pr-4">Ruang</th>
-                            <th class="py-2 pr-4">Pengawas</th>
-                            <th class="py-2 pr-4">Kursi</th>
-                            <th class="py-2">Kartu QR</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($simulation->examGroups->sortBy('room') as $group)
-                            <tr class="border-t border-gray-100">
-                                <td class="py-2 pr-4">{{ $group->name }}</td>
-                                <td class="py-2 pr-4">{{ $group->room }}</td>
-                                <td class="py-2 pr-4">{{ $group->supervisor?->email }}</td>
-                                <td class="py-2 pr-4">{{ $group->seatCount() }} / {{ $group->capacity }}</td>
-                                <td class="py-2">
-                                    <a href="{{ route('proctor.qr', $group) }}" class="text-primary-600 underline" target="_blank" rel="noreferrer">
-                                        Buka kartu
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <h2>Denah ruang</h2>
+        <p>Satu pengawas, satu kartu. Porsi paket: {{ $wave->mixLabel() }}.</p>
+
+        <div class="ceco-roll-rooms">
+            @foreach ($wave->examGroups->sortBy('room') as $group)
+                @php
+                    $taken = $group->testSessions->count();
+                    $capacity = max($taken, (int) $group->capacity);
+                @endphp
+                <article class="ceco-roll-room">
+                    <div class="ceco-roll-room-head">
+                        <div>
+                            <h2>{{ $group->room }}</h2>
+                            <p>{{ $taken }} kursi terisi dari {{ $capacity }}. {{ $group->supervisor?->email }}</p>
+                        </div>
+                        <a class="ceco-roll-stamp" href="{{ route('proctor.qr', $group) }}" target="_blank" rel="noreferrer">Kartu QR</a>
+                    </div>
+                    <div class="ceco-roll-seats">
+                        @for ($i = 1; $i <= $capacity; $i++)
+                            <span class="ceco-roll-seat {{ $i <= $taken ? 'is-taken' : '' }}" title="Kursi {{ $i }}"></span>
+                        @endfor
+                    </div>
+                </article>
+            @endforeach
+        </div>
     </div>
 </x-filament-panels::page>

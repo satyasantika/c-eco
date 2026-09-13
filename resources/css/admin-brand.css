@@ -61,3 +61,5 @@ html.fi {
 .fi-simple-layout .fi-btn.fi-color-primary:hover {
     filter: brightness(1.08);
 }
+
+/* Denah simulasi: gaya lengkap di public/css/exam-simulation.css (tanpa Vite). */

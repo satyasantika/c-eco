@@ -7,6 +7,7 @@ namespace App\Filament\Resources\ExamSimulations\Pages;
 use App\Filament\Resources\ExamSimulations\ExamSimulationResource;
 use App\Models\ExamSimulation;
 use App\Services\MixedPackageComposer;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -16,26 +17,37 @@ class ViewExamSimulation extends ViewRecord
 
     protected string $view = 'filament.resources.exam-simulations.view';
 
+    /** @var array<string, string> */
+    protected array $extraBodyAttributes = [
+        'class' => 'ceco-roll-page',
+    ];
+
     public function getTitle(): string
     {
         $record = $this->getRecord();
 
-        return $record instanceof ExamSimulation ? $record->label() : 'Simulasi';
+        return $record instanceof ExamSimulation ? $record->name : 'Simulasi';
     }
 
     public function getSubheading(): ?string
     {
-        return 'Akun dan jadwal ini hanya untuk gelombang uji. Hapus di sini jika tes asli sudah tidak membutuhkannya.';
+        $record = $this->getRecord();
+
+        return $record instanceof ExamSimulation ? $record->whenLabel() : null;
     }
 
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('back')
+                ->label('Kembali ke denah')
+                ->url(ExamSimulationResource::getUrl('index'))
+                ->color('gray'),
             DeleteAction::make()
-                ->label('Hapus simulasi')
+                ->label('Hapus gelombang')
                 ->requiresConfirmation()
-                ->modalHeading('Hapus simulasi ini?')
-                ->modalDescription('Akun operator/pengawas gelombang ini, jadwal, kursi, dan paketnya dihapus. Bank soal dan tes asli tidak berubah.')
+                ->modalHeading('Hapus gelombang ini?')
+                ->modalDescription('Akun, jadwal, kursi, dan paket gelombang ini hilang. Bank soal dan tes asli tetap.')
                 ->successRedirectUrl(ExamSimulationResource::getUrl('index')),
         ];
     }

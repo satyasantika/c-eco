@@ -7,6 +7,7 @@ namespace App\Filament\Resources\ExamSimulations\Pages;
 use App\Filament\Resources\ExamSimulations\ExamSimulationResource;
 use App\Models\ExamSimulation;
 use App\Services\ExamSimulationBuilder;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,28 @@ class CreateExamSimulation extends CreateRecord
 {
     protected static string $resource = ExamSimulationResource::class;
 
+    protected static bool $canCreateAnother = false;
+
+    protected string $view = 'filament.resources.exam-simulations.create';
+
+    /** @var array<string, string> */
+    protected array $extraBodyAttributes = [
+        'class' => 'ceco-roll-page',
+    ];
+
     public function getTitle(): string
     {
-        return 'Simulasi baru';
+        return 'Tulis gelombang';
+    }
+
+    public function getSubheading(): ?string
+    {
+        return 'Berapa siswa, berapa ruang, jam berapa. Akun pengawas dan operator dibuat otomatis, terpisah dari tes asli.';
+    }
+
+    protected function getCreateFormAction(): Action
+    {
+        return parent::getCreateFormAction()->label('Susun denah');
     }
 
     /** @param  array<string, mixed>  $data */

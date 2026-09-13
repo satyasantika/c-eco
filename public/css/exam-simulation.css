@@ -1,0 +1,356 @@
+/* Denah simulasi: satu daftar ruang ujian, bukan kartu dasbor. */
+
+body.ceco-roll-page .fi-main {
+    max-width: 52rem;
+}
+
+body.ceco-roll-page .fi-breadcrumbs {
+    display: none;
+}
+
+body.ceco-roll-page .fi-header {
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+body.ceco-roll-page .fi-header-heading {
+    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #1a2b22;
+}
+
+body.ceco-roll-page .fi-header-subheading {
+    max-width: 38rem;
+    margin-top: 0.4rem;
+    color: #3d4d44;
+    font-size: 1.02rem;
+    line-height: 1.55;
+}
+
+body.ceco-roll-page .fi-header-actions .fi-btn {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+body.ceco-roll-page .fi-header-actions .fi-btn.fi-color-primary {
+    background: #1c5d3a;
+    color: #f4f7f3;
+}
+
+body.ceco-roll-page .fi-header-actions .fi-btn.fi-color-gray {
+    background: transparent;
+    border: 1.5px solid #1c5d3a;
+    color: #1c5d3a;
+}
+
+.ceco-roll {
+    max-width: 52rem;
+    color: #1a2b22;
+}
+
+.ceco-roll-paper,
+.ceco-roll-slip,
+.ceco-roll-room,
+body.ceco-roll-page .fi-section {
+    background: #fffcf7;
+    border: 1px solid #c5d2c8;
+    border-left: 10px solid #1c5d3a;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.ceco-roll-paper {
+    padding: 1.15rem 1.35rem 1.4rem;
+    margin-bottom: 1.25rem;
+}
+
+.ceco-roll-paper > p {
+    margin: 0;
+    max-width: 40rem;
+    color: #3d4d44;
+    line-height: 1.55;
+}
+
+.ceco-roll > h2 {
+    margin: 0.25rem 0 0.35rem;
+}
+
+.ceco-roll > h2 + p {
+    margin: 0 0 0.9rem;
+    max-width: 36rem;
+    color: #5a6b62;
+    line-height: 1.5;
+}
+
+.ceco-roll-slip {
+    margin-bottom: 14px;
+}
+
+.ceco-roll-slip-main {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem 1.25rem;
+    padding: 1.1rem 1.25rem 0.35rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.ceco-roll-slip-main:hover h2,
+.ceco-roll-slip-main:focus-visible h2 {
+    color: #1c5d3a;
+}
+
+.ceco-roll-slip-main:focus-visible {
+    outline: 2px solid #1c5d3a;
+    outline-offset: 2px;
+}
+
+.ceco-roll-slip time,
+.ceco-roll-paper time {
+    color: #5a6b62;
+    font-size: 0.95rem;
+}
+
+.ceco-roll-slip-when {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.ceco-roll-slip h2 {
+    margin: 0;
+    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #1a2b22;
+}
+
+.ceco-roll-slip p {
+    grid-column: 1 / -1;
+    margin: 0.35rem 0 0.85rem;
+    max-width: 36rem;
+    color: #3d4d44;
+    line-height: 1.5;
+}
+
+.ceco-roll-slip-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 0.55rem 1.25rem 0.75rem;
+    border-top: 1px dashed #c5d2c8;
+    color: #5a6b62;
+    font-size: 0.88rem;
+}
+
+.ceco-roll-erase {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #7a3d2b;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-underline-offset: 3px;
+}
+
+.ceco-roll-erase:hover,
+.ceco-roll-erase:focus-visible {
+    text-decoration: underline;
+}
+
+.ceco-roll-erase:focus-visible {
+    outline: 2px solid #7a3d2b;
+    outline-offset: 3px;
+}
+
+.ceco-roll-slip--empty {
+    padding: 1.25rem 1.35rem 1.4rem;
+    border-left-color: #c5d2c8;
+}
+
+.ceco-roll-slip--empty h2 {
+    font-size: 1.35rem;
+}
+
+.ceco-roll-pass {
+    margin: 0.85rem 0 0;
+    padding-top: 0.85rem;
+    border-top: 1px dashed #c5d2c8;
+}
+
+.ceco-roll-pass p {
+    margin: 0;
+    color: #5a6b62;
+    font-size: 0.92rem;
+}
+
+.ceco-roll-pass .ceco-roll-passphrase {
+    margin: 0.35rem 0 0;
+    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #1c5d3a;
+}
+
+.ceco-roll h2 {
+    margin: 0 0 0.65rem;
+    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a2b22;
+}
+
+.ceco-roll-register-wrap {
+    overflow-x: auto;
+}
+
+.ceco-roll-register {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.ceco-roll-register th {
+    padding: 0.35rem 0.85rem 0.45rem 0;
+    color: #5a6b62;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 1px solid #1a2b22;
+}
+
+.ceco-roll-register td {
+    padding: 0.7rem 0.85rem 0.7rem 0;
+    border-bottom: 1px solid #c5d2c8;
+    vertical-align: top;
+}
+
+.ceco-roll-rooms {
+    display: grid;
+    gap: 14px;
+}
+
+.ceco-roll-room {
+    padding: 1rem 1.15rem 1.15rem;
+}
+
+.ceco-roll-room-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.ceco-roll-room h2 {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.ceco-roll-room p {
+    margin: 0.15rem 0 0;
+    color: #5a6b62;
+    font-size: 0.9rem;
+}
+
+.ceco-roll-seats {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+    max-width: 16.5rem;
+    margin: 0 0 0.9rem;
+}
+
+.ceco-roll-seat {
+    aspect-ratio: 1;
+    background: #e7eee8;
+    border: 1px solid #c5d2c8;
+}
+
+.ceco-roll-seat.is-taken {
+    background: #1c5d3a;
+    border-color: #1a4f32;
+}
+
+.ceco-roll-stamp {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border: 1.5px solid #1c5d3a;
+    border-radius: 0;
+    color: #1c5d3a;
+    font-weight: 650;
+    font-size: 0.88rem;
+    text-decoration: none;
+}
+
+.ceco-roll-stamp:hover,
+.ceco-roll-stamp:focus-visible {
+    background: #1c5d3a;
+    color: #f4f7f3;
+}
+
+.ceco-roll-stamp:focus-visible {
+    outline: 2px solid #1c5d3a;
+    outline-offset: 2px;
+}
+
+body.ceco-roll-page .fi-section {
+    padding: 0;
+}
+
+body.ceco-roll-page .fi-section-header,
+body.ceco-roll-page .fi-section-content-ctn,
+body.ceco-roll-page .fi-section-content {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+}
+
+body.ceco-roll-page .fi-section-header-heading {
+    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a2b22;
+}
+
+body.ceco-roll-page .fi-section-header-description {
+    color: #5a6b62;
+}
+
+body.ceco-roll-page .fi-input,
+body.ceco-roll-page .fi-select-input,
+body.ceco-roll-page .fi-fo-field-wrp-label {
+    border-radius: 2px;
+}
+
+body.ceco-roll-page .fi-ac {
+    gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+    .ceco-roll-slip-main {
+        grid-template-columns: 1fr;
+    }
+
+    .ceco-roll-slip-when {
+        text-align: left;
+        white-space: normal;
+    }
+
+    .ceco-roll-seats {
+        max-width: 14.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ceco-roll-slip-main,
+    .ceco-roll-stamp,
+    .ceco-roll-erase {
+        transition: none;
+    }
+}

@@ -114,7 +114,19 @@ class ExamSimulationTest extends TestCase
     {
         $admin = User::factory()->create();
 
-        $this->actingAs($admin)->get('/admin/exam-simulations')->assertOk();
+        $this->actingAs($admin)
+            ->get('/admin/exam-simulations')
+            ->assertOk()
+            ->assertSee('Tulis gelombang baru')
+            ->assertSee('Gelombang uji terpisah')
+            ->assertSee('Belum ada denah');
+        $named = $this->makeSimulation(['name' => 'Gelombang tampak']);
+        $this->actingAs($admin)
+            ->get('/admin/exam-simulations')
+            ->assertOk()
+            ->assertSee('Gelombang tampak')
+            ->assertSee($named->students.' siswa menempati');
+
         $this->actingAs($admin)->get('/admin/exam-simulations/create')->assertOk()->assertSee('Persen jenjang X');
         $this->actingAs(User::factory()->operator()->create())->get('/admin/exam-simulations')->assertForbidden();
         $this->actingAs(User::factory()->pengawas()->create())->get('/admin/exam-simulations')->assertForbidden();
