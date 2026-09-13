@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
 
@@ -16,6 +15,6 @@ jobs:
         uses: hostinger/deploy-on-vps@v2
         with:
           api-key: ${{ secrets.HOSTINGER_API_KEY }}
-          virtual-machine: "1973487"
+          virtual-machine: ${{ secrets.HOSTINGER_VM_ID }}
           project-name: ceco
           docker-compose-path: docker-compose.yml
