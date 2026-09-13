@@ -51,7 +51,7 @@ class UploadItems extends Page
 
     public function getSubheading(): ?string
     {
-        return 'Butir masuk sebagai paket JSON. Kode yang sudah ada tidak ditimpa.';
+        return 'Paket JSON. Kode yang sudah ada tidak ditimpa.';
     }
 
     protected function getHeaderActions(): array
@@ -74,11 +74,11 @@ class UploadItems extends Page
     }
 
     /**
-     * @return list<array{title: string, lines: list<string>}>
+     * @return list<array{title: string, line: string}>
      */
-    public function ruleGroups(): array
+    public function ruleSummaries(): array
     {
-        return ItemPackageFormat::ruleGroups();
+        return ItemPackageFormat::ruleSummaries();
     }
 
     /**

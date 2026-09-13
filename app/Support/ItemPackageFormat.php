@@ -62,17 +62,17 @@ final class ItemPackageFormat
     /**
      * Empat gerbang urut: berkas, identitas, opsi, akibat.
      *
-     * @return list<array{title: string, lines: list<string>}>
+     * @return list<array{title: string, line: string}>
      */
-    public static function ruleGroups(): array
+    public static function ruleSummaries(): array
     {
-        $rules = self::rules();
+        $max = self::maxMegabytes();
 
         return [
-            ['title' => 'Berkas', 'lines' => array_slice($rules, 0, 3)],
-            ['title' => 'Identitas butir', 'lines' => array_slice($rules, 3, 4)],
-            ['title' => 'Opsi', 'lines' => array_slice($rules, 7, 2)],
-            ['title' => 'Akibat', 'lines' => array_slice($rules, 9, 3)],
+            ['title' => 'Berkas', 'line' => "Hanya .json (UTF-8), paling besar {$max} MB."],
+            ['title' => 'Identitas', 'line' => 'Tiap butir: code, grade, dimension, stem, lima opsi. Kode seperti X-01 tidak dipakai ulang.'],
+            ['title' => 'Opsi', 'line' => 'Tepat lima opsi A–E dan tepat satu kunci.'],
+            ['title' => 'Akibat', 'line' => 'Satu kesalahan atau kode yang sudah ada menolak seluruh berkas.'],
         ];
     }
 

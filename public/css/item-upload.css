@@ -1,7 +1,7 @@
-/* Unggah soal: folio naskah butir, bukan kartu dasbor. */
+/* Unggah soal: satu folio naskah, syarat singkat di muka. */
 
 body.ceco-folio-page .fi-main {
-    max-width: 54rem;
+    max-width: 42rem;
 }
 
 body.ceco-folio-page .fi-breadcrumbs {
@@ -10,7 +10,7 @@ body.ceco-folio-page .fi-breadcrumbs {
 
 body.ceco-folio-page .fi-header {
     align-items: flex-start;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.15rem;
 }
 
 body.ceco-folio-page .fi-header-heading {
@@ -21,11 +21,11 @@ body.ceco-folio-page .fi-header-heading {
 }
 
 body.ceco-folio-page .fi-header-subheading {
-    max-width: 38rem;
-    margin-top: 0.4rem;
+    max-width: 36rem;
+    margin-top: 0.35rem;
     color: #3d4d44;
-    font-size: 1.02rem;
-    line-height: 1.55;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 body.ceco-folio-page .fi-header-actions .fi-btn {
@@ -45,107 +45,116 @@ body.ceco-folio-page .fi-header-actions .fi-btn.fi-color-gray {
 }
 
 .ceco-folio {
-    max-width: 54rem;
-    color: #1a2b22;
-}
-
-.ceco-folio > h2 {
-    margin: 1.5rem 0 0.35rem;
-    font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.ceco-folio > h2 + p {
-    margin: 0 0 0.9rem;
-    max-width: 38rem;
-    color: #5a6b62;
-    line-height: 1.5;
-}
-
-.ceco-folio-paper,
-.ceco-folio-item {
     background: #fffcf7;
     border: 1px solid #c5d2c8;
     border-left: 10px solid #1c5d3a;
-    border-radius: 0;
+    color: #1a2b22;
+    padding: 1.2rem 1.35rem 1.4rem;
 }
 
-.ceco-folio-paper {
-    padding: 1.15rem 1.35rem 1.35rem;
-}
-
-.ceco-folio-paper h2 {
-    margin: 0 0 0.45rem;
+.ceco-folio-head h2,
+.ceco-folio-examples h2 {
+    margin: 0 0 0.4rem;
     font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
     font-size: 1.25rem;
     font-weight: 700;
 }
 
-.ceco-folio-paper > p {
-    margin: 0 0 1rem;
-    max-width: 40rem;
+.ceco-folio-head p,
+.ceco-folio-examples > p {
+    margin: 0;
+    max-width: 36rem;
     color: #3d4d44;
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
 .ceco-folio-gates {
-    margin: 0;
+    margin: 1.1rem 0 0;
     padding: 0;
     list-style: none;
     counter-reset: folio-gate;
 }
 
-.ceco-folio-gates > li {
+.ceco-folio-gates li {
     display: grid;
-    grid-template-columns: 1.75rem 1fr;
-    gap: 0.35rem 0.75rem;
-    padding: 0.85rem 0 0;
-    border-top: 1px dashed #c5d2c8;
+    grid-template-columns: 1.5rem 6.5rem 1fr;
+    gap: 0.35rem 0.65rem;
+    align-items: baseline;
+    padding: 0.65rem 0;
+    border-top: 1px solid #c5d2c8;
     counter-increment: folio-gate;
 }
 
-.ceco-folio-gates > li:first-child {
-    padding-top: 0;
-    border-top: 0;
-}
-
-.ceco-folio-gates > li::before {
+.ceco-folio-gates li::before {
     content: counter(folio-gate);
     font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    line-height: 1.2;
     color: #1c5d3a;
 }
 
-.ceco-folio-gates h3 {
-    grid-column: 2;
-    margin: 0 0 0.35rem;
-    font-size: 1rem;
+.ceco-folio-gates strong {
     font-weight: 650;
 }
 
-.ceco-folio-gates ul {
-    grid-column: 2;
-    margin: 0;
-    padding: 0 0 0 1.1rem;
+.ceco-folio-gates span {
     color: #3d4d44;
     line-height: 1.45;
 }
 
-.ceco-folio-gates li + li {
-    margin-top: 0.25rem;
+.ceco-folio-more {
+    margin-top: 0.85rem;
 }
 
-.ceco-folio-slips {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
+.ceco-folio-more summary {
+    cursor: pointer;
+    color: #1c5d3a;
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+.ceco-folio-more summary:hover,
+.ceco-folio-more summary:focus-visible {
+    text-decoration: underline;
+}
+
+.ceco-folio-more summary:focus-visible {
+    outline: 2px solid #1c5d3a;
+    outline-offset: 3px;
+}
+
+.ceco-folio-more ul {
+    margin: 0.65rem 0 0;
+    padding: 0 0 0 1.15rem;
+    color: #3d4d44;
+    line-height: 1.5;
+}
+
+.ceco-folio-more li + li {
+    margin-top: 0.4rem;
+}
+
+.ceco-folio-more pre {
+    margin: 0.7rem 0 0;
+    overflow-x: auto;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #c5d2c8;
+    color: #1a2b22;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre;
+}
+
+.ceco-folio-examples {
+    margin-top: 1.5rem;
+    padding-top: 1.15rem;
+    border-top: 1px dashed #c5d2c8;
 }
 
 .ceco-folio-item {
-    padding: 1rem 1.15rem 1.1rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #c5d2c8;
 }
 
 .ceco-folio-item header {
@@ -153,13 +162,13 @@ body.ceco-folio-page .fi-header-actions .fi-btn.fi-color-gray {
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 0.35rem 1rem;
-    margin-bottom: 0.65rem;
+    gap: 0.3rem 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .ceco-folio-item header strong {
     font-family: Palatino, "Palatino Linotype", Georgia, "Times New Roman", serif;
-    font-size: 1.55rem;
+    font-size: 1.45rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -182,17 +191,17 @@ body.ceco-folio-page .fi-header-actions .fi-btn.fi-color-gray {
 }
 
 .ceco-folio-options {
-    margin: 0.75rem 0 0;
+    margin: 0.65rem 0 0;
     padding: 0;
     list-style: none;
 }
 
 .ceco-folio-option {
     display: grid;
-    grid-template-columns: 1.7rem 1fr;
+    grid-template-columns: 1.6rem 1fr;
     gap: 0.55rem;
     align-items: start;
-    padding: 0.4rem 0;
+    padding: 0.35rem 0;
     border-top: 1px solid #e4ebe6;
 }
 
@@ -200,12 +209,12 @@ body.ceco-folio-page .fi-header-actions .fi-btn.fi-color-gray {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 1.6rem;
+    height: 1.6rem;
     border: 1.5px solid #c5d2c8;
     color: #1a2b22;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
 }
 
 .ceco-folio-option.is-key .ceco-folio-letter {
@@ -214,49 +223,18 @@ body.ceco-folio-page .fi-header-actions .fi-btn.fi-color-gray {
     color: #f4f7f3;
 }
 
-.ceco-folio-source {
-    margin-top: 1.25rem;
-    border-top: 1px dashed #c5d2c8;
-    padding-top: 0.65rem;
-}
+@media (max-width: 640px) {
+    .ceco-folio-gates li {
+        grid-template-columns: 1.4rem 1fr;
+    }
 
-.ceco-folio-source summary {
-    cursor: pointer;
-    color: #1c5d3a;
-    font-weight: 600;
-    text-underline-offset: 3px;
-}
-
-.ceco-folio-source summary:hover,
-.ceco-folio-source summary:focus-visible {
-    text-decoration: underline;
-}
-
-.ceco-folio-source summary:focus-visible {
-    outline: 2px solid #1c5d3a;
-    outline-offset: 3px;
-}
-
-.ceco-folio-source pre {
-    margin: 0.75rem 0 0;
-    overflow-x: auto;
-    padding: 0.85rem 1rem;
-    background: #fffcf7;
-    border: 1px solid #c5d2c8;
-    color: #1a2b22;
-    font-size: 0.82rem;
-    line-height: 1.45;
-    white-space: pre;
-}
-
-@media (min-width: 880px) {
-    .ceco-folio-slips {
-        grid-template-columns: 1fr 1fr;
+    .ceco-folio-gates span {
+        grid-column: 2;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .ceco-folio-source summary {
+    .ceco-folio-more summary {
         transition: none;
     }
 }
