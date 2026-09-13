@@ -60,6 +60,23 @@ final class ItemPackageFormat
     }
 
     /**
+     * Empat gerbang urut: berkas, identitas, opsi, akibat.
+     *
+     * @return list<array{title: string, lines: list<string>}>
+     */
+    public static function ruleGroups(): array
+    {
+        $rules = self::rules();
+
+        return [
+            ['title' => 'Berkas', 'lines' => array_slice($rules, 0, 3)],
+            ['title' => 'Identitas butir', 'lines' => array_slice($rules, 3, 4)],
+            ['title' => 'Opsi', 'lines' => array_slice($rules, 7, 2)],
+            ['title' => 'Akibat', 'lines' => array_slice($rules, 9, 3)],
+        ];
+    }
+
+    /**
      * @return array{dimensions: list<array{code: string, label: string}>, items: list<array<string, mixed>>}
      */
     public static function samplePayload(): array

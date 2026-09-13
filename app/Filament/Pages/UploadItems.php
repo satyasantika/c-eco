@@ -32,6 +32,11 @@ class UploadItems extends Page
 
     protected static ?string $slug = 'unggah-soal';
 
+    /** @var array<string, string> */
+    protected array $extraBodyAttributes = [
+        'class' => 'ceco-folio-page',
+    ];
+
     public static function canAccess(): bool
     {
         $user = auth()->user();
@@ -66,6 +71,34 @@ class UploadItems extends Page
     public function rules(): array
     {
         return ItemPackageFormat::rules();
+    }
+
+    /**
+     * @return list<array{title: string, lines: list<string>}>
+     */
+    public function ruleGroups(): array
+    {
+        return ItemPackageFormat::ruleGroups();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function sampleSlips(): array
+    {
+        $payload = ItemPackageFormat::samplePayload();
+        $labels = [];
+        foreach ($payload['dimensions'] as $dimension) {
+            $labels[$dimension['code']] = $dimension['label'];
+        }
+
+        $slips = [];
+        foreach ($payload['items'] as $item) {
+            $item['dimension_label'] = $labels[$item['dimension']] ?? $item['dimension'];
+            $slips[] = $item;
+        }
+
+        return $slips;
     }
 
     public function sampleJson(): string
