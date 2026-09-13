@@ -19,3 +19,8 @@ RUN sed -i 's/^user = www-data/user = 1000/; s/^group = www-data/group = 1000/' 
         /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /var/www/html
+COPY . .
+RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction \
+ && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache
+
