@@ -54,7 +54,7 @@ class ExamGroupResource extends Resource
             return $query->where('supervisor_id', $user->id);
         }
 
-        return $query;
+        return $query->whereNull('exam_simulation_id');
     }
 
     public static function canViewAny(): bool
@@ -80,7 +80,10 @@ class ExamGroupResource extends Resource
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->canManageExamGroups();
+        return $user instanceof User
+            && $user->canManageExamGroups()
+            && $record instanceof ExamGroup
+            && ! $record->isExamSimulation();
     }
 
     public static function canDelete(mixed $record): bool

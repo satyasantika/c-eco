@@ -19,6 +19,7 @@ class TestConfig extends Model
         'exposure_method', 'exposure_k', 'content_balancing_json',
         'shuffle_options', 'is_active',
         'grade_share_x', 'grade_share_xi', 'grade_share_xii', 'pool_size',
+        'exam_simulation_id',
     ];
 
     protected function casts(): array
@@ -43,6 +44,16 @@ class TestConfig extends Model
     public function itemBank(): BelongsTo
     {
         return $this->belongsTo(ItemBank::class);
+    }
+
+    public function examSimulation(): BelongsTo
+    {
+        return $this->belongsTo(ExamSimulation::class);
+    }
+
+    public function isExamSimulationPackage(): bool
+    {
+        return $this->exam_simulation_id !== null;
     }
 
     /**

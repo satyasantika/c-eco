@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SchoolResource extends Resource
 {
@@ -39,6 +40,11 @@ class SchoolResource extends Resource
     public static function table(Table $table): Table
     {
         return SchoolsTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereNull('exam_simulation_id');
     }
 
     public static function canViewAny(): bool

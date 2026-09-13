@@ -57,6 +57,7 @@ class ExamGroupForm
                         ->label('Paket ujian')
                         ->options(fn (): array => TestConfig::query()
                             ->where('is_active', true)
+                            ->whereNull('exam_simulation_id')
                             ->orderBy('name')
                             ->pluck('name', 'id')
                             ->all())

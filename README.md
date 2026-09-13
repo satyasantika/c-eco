@@ -32,7 +32,7 @@ make test
 |---|---|
 | `cat:seed-items` | Memuat bank soal dari `data/items-all.json` |
 | `cat:seed-provisional-parameters` | Parameter butir sementara untuk uji fisibilitas |
-| `cat:import-item-package` | Paket soal baru dari JSON (`--grade=`, `--package-version=`) |
+| `cat:import-item-package` | Paket soal baru dari JSON (`--grade=`, `--package-version=`). Di panel: **Unggah soal** (`/admin/unggah-soal`), hanya `.json` |
 | `cat:import-parameters` | Parameter hasil kalibrasi, sebagai versi baru (R5) |
 | `cat:import-participants` | Daftar peserta dari CSV |
 | `cat:issue-tokens` | Menerbitkan token akses |
@@ -41,6 +41,8 @@ make test
 | `cat:backup` | Dump basis data terkompresi |
 | `cat:print-form` | Lembar soal dan lembar jawaban untuk lapis mundur L3 |
 | `cat:seed-simulation` | Akun panel + paket campuran seimbang + jadwal 20/1, 100/4, atau 300/10 (`20`, `100`, `300`, atau `all`) |
+
+Di panel admin, menu **Simulasi** menyusun gelombang uji (jumlah siswa, kelas, akun operator/pengawas, porsi X/XI/XII). Gelombang bisa dihapus utuh tanpa menyentuh bank soal atau tes asli.
 
 ## Jalur mundur hari-H
 

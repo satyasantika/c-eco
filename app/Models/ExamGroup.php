@@ -14,6 +14,7 @@ class ExamGroup extends Model
     protected $fillable = [
         'school_id', 'name', 'room', 'starts_at',
         'supervisor_id', 'test_config_id', 'capacity', 'notes',
+        'exam_simulation_id',
     ];
 
     protected function casts(): array
@@ -37,6 +38,16 @@ class ExamGroup extends Model
     public function testConfig(): BelongsTo
     {
         return $this->belongsTo(TestConfig::class);
+    }
+
+    public function examSimulation(): BelongsTo
+    {
+        return $this->belongsTo(ExamSimulation::class);
+    }
+
+    public function isExamSimulation(): bool
+    {
+        return $this->exam_simulation_id !== null;
     }
 
     public function testSessions(): HasMany

@@ -147,7 +147,7 @@ class TokenAndSlipTest extends TestCase
         $this->importParticipants();
         $user = User::factory()->create();
 
-        foreach (['/admin/items', '/admin/item-banks', '/admin/participants', '/admin/schools', '/admin/exam-groups'] as $url) {
+        foreach (['/admin/items', '/admin/item-banks', '/admin/unggah-soal', '/admin/participants', '/admin/schools', '/admin/exam-groups', '/admin/exam-simulations'] as $url) {
             $this->actingAs($user)->get($url)->assertOk();
         }
 

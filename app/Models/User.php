@@ -11,11 +11,12 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'is_active', 'exam_simulation_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -48,7 +49,8 @@ class User extends Authenticatable implements FilamentUser
 
     public function canManageRoster(): bool
     {
-        return in_array($this->role, [UserRole::Admin, UserRole::Operator], true);
+        return in_array($this->role, [UserRole::Admin, UserRole::Operator], true)
+            && ! $this->isExamSimulationAccount();
     }
 
     public function canViewItems(): bool
@@ -76,21 +78,36 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === UserRole::Pengawas;
     }
 
-    /** Jadwal ruang dan jam: hanya operator. Admin tidak menyusun pelaksanaan. */
+    /** Jadwal ruang dan jam: hanya operator tes asli. */
     public function canManageExamGroups(): bool
     {
-        return $this->isOperator();
+        return $this->isOperator() && ! $this->isExamSimulationAccount();
     }
 
-    /** Paket ujian dan komposisi persen jenjang: hanya operator. */
+    /** Paket ujian tes asli: hanya operator, bukan akun gelombang simulasi. */
     public function canManagePackages(): bool
     {
-        return $this->isOperator();
+        return $this->isOperator() && ! $this->isExamSimulationAccount();
     }
 
     public function canProctorExamGroups(): bool
     {
         return in_array($this->role, [UserRole::Admin, UserRole::Operator, UserRole::Pengawas], true);
+    }
+
+    public function canManageExamSimulations(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function isExamSimulationAccount(): bool
+    {
+        return $this->exam_simulation_id !== null;
+    }
+
+    public function examSimulation(): BelongsTo
+    {
+        return $this->belongsTo(ExamSimulation::class);
     }
 
     public function supervisedExamGroups(): HasMany

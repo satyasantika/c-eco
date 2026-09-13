@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -50,6 +51,11 @@ class TestConfigResource extends Resource
         return TestConfigsTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereNull('exam_simulation_id');
+    }
+
     public static function canViewAny(): bool
     {
         $user = auth()->user();
@@ -69,7 +75,9 @@ class TestConfigResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        return static::canViewAny();
+        return static::canViewAny()
+            && $record instanceof TestConfig
+            && ! $record->isExamSimulationPackage();
     }
 
     public static function canDelete(mixed $record): bool

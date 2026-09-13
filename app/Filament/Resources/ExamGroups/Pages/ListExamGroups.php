@@ -32,6 +32,8 @@ class ListExamGroups extends ListRecords
 
         if ($user?->isPengawas()) {
             $groups->where('supervisor_id', $user->id);
+        } else {
+            $groups->whereNull('exam_simulation_id');
         }
 
         $rows = $groups->withCount([
