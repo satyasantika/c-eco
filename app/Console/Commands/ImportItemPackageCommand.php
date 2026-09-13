@@ -16,7 +16,7 @@ class ImportItemPackageCommand extends Command
         {--package-version= : Versi paket, unik bersama jenjang}
         {--no-provisional : Jangan membuat parameter sementara}';
 
-    protected $description = 'Mengimpor paket soal baru dari JSON tanpa menimpa butir yang sudah ada';
+    protected $description = 'Mengimpor paket soal baru dari JSON (.json, bentuk items-all atau array butir) tanpa menimpa kode yang sudah ada';
 
     public function handle(ItemPackageImporter $importer): int
     {

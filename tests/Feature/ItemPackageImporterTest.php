@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\UploadItems;
 use App\Filament\Resources\ItemBanks\ItemBankResource;
 use App\Filament\Resources\ItemBanks\Pages\ListItemBanks;
 use App\Filament\Resources\Items\ItemResource;
@@ -16,6 +17,7 @@ use App\Models\TestConfig;
 use App\Models\User;
 use App\Services\ItemBankImporter;
 use App\Services\ItemPackageImporter;
+use App\Support\ItemPackageFormat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
@@ -144,6 +146,13 @@ class ItemPackageImporterTest extends TestCase
 
         $this->actingAs($admin)->get('/admin/item-banks')->assertOk();
         $this->actingAs($admin)->get('/admin/items')->assertOk();
+        $this->actingAs($admin)
+            ->get('/admin/unggah-soal')
+            ->assertOk()
+            ->assertSee('Berkas yang boleh diunggah')
+            ->assertSee('.json')
+            ->assertSee('X-91')
+            ->assertSee('.docx');
 
         Livewire::actingAs($admin)
             ->test(ListItems::class)
@@ -188,6 +197,29 @@ class ItemPackageImporterTest extends TestCase
         Livewire::actingAs($peneliti)
             ->test(ListItems::class)
             ->assertActionHidden('importPackage');
+
+        $this->actingAs($peneliti)->get('/admin/unggah-soal')->assertForbidden();
+        $this->actingAs(User::factory()->operator()->create())->get('/admin/unggah-soal')->assertForbidden();
+    }
+
+    public function test_the_published_example_json_imports_cleanly(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'ceco-contoh').'.json';
+        file_put_contents($path, ItemPackageFormat::sampleJson());
+
+        app(ItemPackageImporter::class)->importFromFile($path, 'X', 'contoh');
+
+        $this->assertTrue(Item::query()->where('code', 'X-91')->exists());
+        $this->assertTrue(Item::query()->where('code', 'X-92')->exists());
+        $this->assertSame(1, Item::query()->where('code', 'X-91')->firstOrFail()->options()->where('is_key', true)->count());
+    }
+
+    public function test_admin_can_download_the_example_json(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(UploadItems::class)
+            ->callAction('downloadExample')
+            ->assertFileDownloaded(ItemPackageFormat::EXAMPLE_FILENAME);
     }
 
     /**

@@ -6,6 +6,7 @@ namespace App\Filament\Actions;
 
 use App\Models\User;
 use App\Services\ItemPackageImporter;
+use App\Support\ItemPackageFormat;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\HtmlString;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use RuntimeException;
 
@@ -21,7 +23,9 @@ class ImportItemPackageAction
     public static function make(): Action
     {
         return Action::make('importPackage')
-            ->label('Impor paket soal')
+            ->label('Unggah soal')
+            ->modalHeading('Unggah soal')
+            ->modalDescription('Hanya JSON. Format lengkap dan contoh ada di menu Unggah soal.')
             ->icon('heroicon-o-arrow-up-tray')
             ->visible(fn (): bool => auth()->user() instanceof User && auth()->user()->canEditItems())
             ->schema([
@@ -42,12 +46,15 @@ class ImportItemPackageAction
                     ->maxLength(32)
                     ->helperText('Jenjang + versi adalah identitas paket. Versi baru = paket baru. Versi yang sudah ada hanya menerima butir berkode baru.'),
                 FileUpload::make('json')
-                    ->label('Berkas JSON')
-                    ->acceptedFileTypes(['application/json', 'text/json', 'text/plain', 'application/octet-stream'])
-                    ->maxSize(2048)
+                    ->label('Berkas .json')
+                    ->acceptedFileTypes(ItemPackageFormat::MIME_TYPES)
+                    ->maxSize(ItemPackageFormat::MAX_KILOBYTES)
                     ->storeFiles(false)
                     ->required()
-                    ->helperText('Bentuk sama dengan data/items-all.json, atau array butir. Tiap butir: code, grade, dimension, stem_html, lima opsi A–E, tepat satu kunci. Kode yang sudah ada ditolak (R7).'),
+                    ->helperText(new HtmlString(
+                        e(ItemPackageFormat::shortHelper())
+                        .' Ditolak: '.e(implode(', ', ItemPackageFormat::rejectedExtensions())).'.'
+                    )),
                 Toggle::make('provisional')
                     ->label('Buat parameter sementara')
                     ->default(true)

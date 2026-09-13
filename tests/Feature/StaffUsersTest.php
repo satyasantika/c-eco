@@ -27,6 +27,7 @@ class StaffUsersTest extends TestCase
         $pengawas = User::factory()->pengawas()->create();
 
         $this->actingAs($admin)->get('/admin/users')->assertOk();
+        $this->actingAs($admin)->get('/admin/unggah-soal')->assertOk()->assertSee('Berkas yang boleh diunggah');
         $this->actingAs($pengawas)->get('/admin/users')->assertForbidden();
         $this->actingAs($pengawas)->get('/admin/participants')->assertForbidden();
         $this->actingAs($pengawas)->get('/admin/items')->assertForbidden();
