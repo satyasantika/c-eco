@@ -1,4 +1,4 @@
-name: Deploy ceco to Hostinger VPS
+name: Deploy ceco
 
 on:
   push:
@@ -10,13 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: Deploy ceco
         uses: hostinger/deploy-on-vps@v2
         with:
           api-key: ${{ secrets.HOSTINGER_API_KEY }}
-          virtual-machine: ${{ vars.HOSTINGER_VM_ID }}
+          virtual-machine: "1973487"
           project-name: ceco
           docker-compose-path: docker-compose.yml
