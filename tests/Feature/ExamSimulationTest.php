@@ -203,6 +203,65 @@ class ExamSimulationTest extends TestCase
             ->assertSee($token);
     }
 
+    public function test_rescheduling_a_simulation_moves_its_rooms_not_real_groups(): void
+    {
+        $realSchool = School::query()->firstOrCreate(['name' => 'SMA Asli'], ['city' => 'Tasikmalaya']);
+        $realConfig = TestConfig::query()->whereNull('exam_simulation_id')->firstOrFail();
+        $realWhen = Carbon::parse('2026-09-21 10:00:00');
+        $realGroup = ExamGroup::query()->create([
+            'school_id' => $realSchool->id,
+            'name' => 'Tes asli',
+            'room' => 'AULA',
+            'starts_at' => $realWhen,
+            'supervisor_id' => User::factory()->pengawas()->create()->id,
+            'test_config_id' => $realConfig->id,
+            'capacity' => 2,
+        ]);
+
+        $simulation = $this->makeSimulation([
+            'students' => 4,
+            'rooms' => 2,
+            'pengawas_count' => 2,
+            'starts_at' => Carbon::parse('2026-09-21 07:00:00'),
+        ]);
+
+        $newWhen = Carbon::parse('2026-09-14 08:30:00', (string) config('app.timezone'));
+        app(ExamSimulationBuilder::class)->reschedule($simulation, $newWhen);
+
+        $this->assertSame($newWhen->timestamp, $simulation->fresh()->starts_at->timestamp);
+        foreach ($simulation->examGroups as $group) {
+            $this->assertSame($newWhen->timestamp, $group->fresh()->starts_at->timestamp);
+        }
+        $this->assertSame($realWhen->timestamp, $realGroup->fresh()->starts_at->timestamp);
+    }
+
+    public function test_admin_can_change_simulation_time_from_the_panel(): void
+    {
+        $simulation = $this->makeSimulation([
+            'students' => 3,
+            'rooms' => 1,
+            'pengawas_count' => 1,
+            'starts_at' => Carbon::parse('2026-09-21 07:00:00'),
+        ]);
+        $when = Carbon::parse('2026-09-14 09:15:00', (string) config('app.timezone'));
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(\App\Filament\Resources\ExamSimulations\Pages\ViewExamSimulation::class, [
+                'record' => $simulation->getKey(),
+            ])
+            ->callAction('reschedule', ['starts_at' => $when])
+            ->assertHasNoActionErrors();
+
+        $this->assertSame(
+            $when->timestamp,
+            $simulation->fresh()->starts_at->timestamp,
+        );
+        $this->assertSame(
+            $when->timestamp,
+            $simulation->examGroups()->firstOrFail()->starts_at->timestamp,
+        );
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      */

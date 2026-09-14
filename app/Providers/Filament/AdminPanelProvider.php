@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Monitor::class,
             ])
-            ->homeUrl('/admin/monitor')
+            ->homeUrl(fn (): string => url('/admin/monitor'))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->middleware([
                 EncryptCookies::class,

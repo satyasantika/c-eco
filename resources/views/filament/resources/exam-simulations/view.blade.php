@@ -15,6 +15,8 @@
     <div class="ceco-roll">
         <section class="ceco-roll-paper">
             <p>
+                <time datetime="{{ $wave->starts_at?->toIso8601String() }}">{{ $wave->whenLabel() }}</time>
+                —
                 {{ $wave->students }} siswa menempati {{ $wave->rooms }} ruang
                 di {{ $wave->school?->name }}.
                 Paket {{ $allocation['X'] }} X, {{ $allocation['XI'] }} XI, {{ $allocation['XII'] }} XII

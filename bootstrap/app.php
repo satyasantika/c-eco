@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DetectApplicationPrefix;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Nginx berada di depan PHP-FPM, dan hari-H mungkin ada reverse proxy
         // tambahan. Tanpa ini alamat klien yang tercatat adalah alamat proxy.
         $middleware->trustProxies(at: '*');
+        // Root (c-eco.tech) vs subfolder (/c-eco) — sebelum routing dan sesi.
+        $middleware->prepend(DetectApplicationPrefix::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

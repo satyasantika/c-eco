@@ -146,6 +146,33 @@ body.ceco-roll-page .fi-section {
     font-size: 0.88rem;
 }
 
+.ceco-roll-slip-tools {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ceco-roll-reschedule {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #1c5d3a;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-underline-offset: 3px;
+}
+
+.ceco-roll-reschedule:hover,
+.ceco-roll-reschedule:focus-visible {
+    text-decoration: underline;
+}
+
+.ceco-roll-reschedule:focus-visible {
+    outline: 2px solid #1c5d3a;
+    outline-offset: 3px;
+}
+
 .ceco-roll-erase {
     background: none;
     border: 0;

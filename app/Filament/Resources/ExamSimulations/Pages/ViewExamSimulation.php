@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\ExamSimulations\Pages;
 
+use App\Filament\Resources\ExamSimulations\Actions\RescheduleExamSimulationAction;
 use App\Filament\Resources\ExamSimulations\ExamSimulationResource;
 use App\Models\ExamSimulation;
 use App\Services\MixedPackageComposer;
@@ -38,7 +39,13 @@ class ViewExamSimulation extends ViewRecord
 
     protected function getHeaderActions(): array
     {
+        $record = $this->getRecord();
+        $reschedule = $record instanceof ExamSimulation
+            ? RescheduleExamSimulationAction::make($record)
+            : RescheduleExamSimulationAction::make();
+
         return [
+            $reschedule,
             Action::make('back')
                 ->label('Kembali ke denah')
                 ->url(ExamSimulationResource::getUrl('index'))

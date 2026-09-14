@@ -11,6 +11,7 @@ use App\Models\ItemBank;
 use App\Models\School;
 use App\Models\TestConfig;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -45,6 +46,25 @@ class ExamSimulationBuilder
                 'examGroups.supervisor',
                 'users',
             ]) ?? $simulation;
+        });
+    }
+
+    public function reschedule(ExamSimulation $simulation, \DateTimeInterface|string $startsAt): ExamSimulation
+    {
+        if (! $simulation->exists) {
+            throw new RuntimeException('Gelombang belum tersimpan.');
+        }
+
+        $when = Carbon::parse($startsAt);
+
+        return DB::transaction(function () use ($simulation, $when): ExamSimulation {
+            $simulation->forceFill(['starts_at' => $when])->save();
+
+            ExamGroup::query()
+                ->where('exam_simulation_id', $simulation->id)
+                ->update(['starts_at' => $when]);
+
+            return $simulation->refresh();
         });
     }
 

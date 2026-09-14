@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\ExamSimulations\Pages;
 
+use App\Filament\Resources\ExamSimulations\Actions\RescheduleExamSimulationAction;
 use App\Filament\Resources\ExamSimulations\ExamSimulationResource;
 use App\Models\ExamSimulation;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -39,6 +41,11 @@ class ListExamSimulations extends ListRecords
                 ->label('Tulis gelombang baru')
                 ->icon('heroicon-o-plus'),
         ];
+    }
+
+    public function rescheduleAction(): Action
+    {
+        return RescheduleExamSimulationAction::make();
     }
 
     /** @return Collection<int, ExamSimulation> */

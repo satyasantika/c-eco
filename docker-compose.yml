@@ -20,6 +20,7 @@ services:
       APP_LOCALE: id
       APP_FALLBACK_LOCALE: id
       APP_TIMEZONE: Asia/Jakarta
+      TZ: Asia/Jakarta
       CAT_MODE: ${CAT_MODE:-adaptive}
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -77,6 +78,7 @@ services:
       APP_LOCALE: id
       APP_FALLBACK_LOCALE: id
       APP_TIMEZONE: Asia/Jakarta
+      TZ: Asia/Jakarta
       CAT_MODE: ${CAT_MODE:-adaptive}
       DB_CONNECTION: mysql
       DB_HOST: db

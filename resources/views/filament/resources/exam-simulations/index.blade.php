@@ -12,14 +12,23 @@
                 </a>
                 <div class="ceco-roll-slip-foot">
                     <span>{{ $wave->staffLabel() }}</span>
-                    <button
-                        type="button"
-                        class="ceco-roll-erase"
-                        wire:click="removeWave({{ $wave->id }})"
-                        wire:confirm="Hapus gelombang ini beserta akun, kursi, dan paketnya? Tes asli tidak berubah."
-                    >
-                        Hapus
-                    </button>
+                    <div class="ceco-roll-slip-tools">
+                        <button
+                            type="button"
+                            class="ceco-roll-reschedule"
+                            wire:click="mountAction('reschedule', { waveId: {{ $wave->id }} })"
+                        >
+                            Ubah jam
+                        </button>
+                        <button
+                            type="button"
+                            class="ceco-roll-erase"
+                            wire:click="removeWave({{ $wave->id }})"
+                            wire:confirm="Hapus gelombang ini beserta akun, kursi, dan paketnya? Tes asli tidak berubah."
+                        >
+                            Hapus
+                        </button>
+                    </div>
                 </div>
             </article>
         @empty

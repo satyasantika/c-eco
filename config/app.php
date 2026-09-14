@@ -54,18 +54,22 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // APP_DIR memaksa subfolder. Kosong = deteksi otomatis (path /c-eco,
+    // X-Forwarded-Prefix, atau path APP_URL jika hostnya sama).
+    'dir' => env('APP_DIR', ''),
+    'subdirectory' => env('APP_SUBDIRECTORY', 'c-eco'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | WIB (Asia/Jakarta). Jam HP siswa tidak dipercaya (R6); pembandingnya
+    | adalah jam aplikasi ini, bukan UTC.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------

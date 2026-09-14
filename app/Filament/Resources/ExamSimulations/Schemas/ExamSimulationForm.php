@@ -81,9 +81,10 @@ class ExamSimulationForm
                         ->required()
                         ->seconds(false)
                         ->native(false)
+                        ->timezone((string) config('app.timezone'))
                         ->default(now()->addHour()->startOfHour())
                         ->columnSpanFull()
-                        ->helperText('Jam server. Kartu QR dan halaman siswa tertutup sebelum jam ini.'),
+                        ->helperText('Jam server. Kartu QR dan halaman siswa tertutup sebelum jam ini. Bisa diubah setelah gelombang dibuat.'),
                 ])
                 ->columns(2),
 
