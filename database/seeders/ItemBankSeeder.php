@@ -11,6 +11,16 @@ class ItemBankSeeder extends Seeder
 {
     public function run(): void
     {
+        $path = base_path('data/items-all.json');
+
+        if (! is_file($path)) {
+            $this->command?->warn(
+                'Lewati bank soal: data/items-all.json tidak ada. Unggah lewat panel atau jalankan cat:seed-items setelah berkas disalin.',
+            );
+
+            return;
+        }
+
         $counts = ItemBankImporter::fromDataDirectory()->import(force: false);
 
         $this->command?->info(sprintf(

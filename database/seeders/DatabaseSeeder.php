@@ -26,8 +26,9 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        // Bank soal tidak di-seed: data/ tidak ada di image produksi.
+        // Unggah lewat panel (/admin/unggah-soal) atau `php artisan cat:seed-items`.
         $this->call([
-            ItemBankSeeder::class,
             TestConfigSeeder::class,
         ]);
     }
