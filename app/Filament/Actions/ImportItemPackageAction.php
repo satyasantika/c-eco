@@ -48,6 +48,11 @@ class ImportItemPackageAction
                 FileUpload::make('json')
                     ->label('Berkas .json')
                     ->acceptedFileTypes(ItemPackageFormat::MIME_TYPES)
+                    ->rules(['extensions:'.ItemPackageFormat::EXTENSION])
+                    ->validationMessages([
+                        'mimetypes' => 'Berkas harus JSON. Soal yang banyak tabel HTML kadang terdeteksi sebagai halaman web — itu biasa, unggah ulang berkas .json.',
+                        'extensions' => 'Hanya berkas berekstensi .json.',
+                    ])
                     ->maxSize(ItemPackageFormat::MAX_KILOBYTES)
                     ->storeFiles(false)
                     ->required()

@@ -185,6 +185,49 @@ class ItemPackageImporterTest extends TestCase
         $this->assertTrue(ItemParameter::query()->where('is_active', true)->exists());
     }
 
+    public function test_json_sniffed_as_html_because_stems_are_dense_still_imports(): void
+    {
+        $admin = User::factory()->create();
+        $json = $this->htmlDensePackageJson('XII-91');
+        $this->assertSame('text/html', (new \finfo(FILEINFO_MIME_TYPE))->buffer(substr($json, 0, 64 * 1024)));
+
+        $file = UploadedFile::fake()
+            ->createWithContent('items-XII.json', $json)
+            ->mimeType('text/html');
+
+        Livewire::actingAs($admin)
+            ->test(ListItemBanks::class)
+            ->callAction('importPackage', [
+                'grade' => 'XII',
+                'version' => '2026.1',
+                'json' => $file,
+                'provisional' => true,
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertTrue(Item::query()->where('code', 'XII-91')->exists());
+    }
+
+    public function test_an_html_file_is_rejected_even_when_the_mime_is_html(): void
+    {
+        $admin = User::factory()->create();
+        $file = UploadedFile::fake()
+            ->createWithContent('soal.html', '<html><p>bukan json</p></html>')
+            ->mimeType('text/html');
+
+        Livewire::actingAs($admin)
+            ->test(ListItemBanks::class)
+            ->callAction('importPackage', [
+                'grade' => 'XII',
+                'version' => '2026.1',
+                'json' => $file,
+                'provisional' => true,
+            ])
+            ->assertHasActionErrors(['json']);
+
+        $this->assertSame(0, Item::query()->count());
+    }
+
     public function test_a_peneliti_can_read_packages_but_cannot_import(): void
     {
         $peneliti = User::factory()->peneliti()->create();
@@ -266,5 +309,17 @@ class ItemPackageImporterTest extends TestCase
         file_put_contents($path, json_encode($payload, JSON_THROW_ON_ERROR));
 
         return $path;
+    }
+
+    /** JSON sah yang 64 KB pertamanya dicium libmagic sebagai text/html, seperti items-XII.json. */
+    private function htmlDensePackageJson(string $code): string
+    {
+        $chunk = '<table><tr><td><p>pasar</p></td><td><p>harga</p></td></tr></table>';
+        $item = $this->item($code, 'originality', 'A');
+        $item['stem_html'] = '<p>Soal padat HTML.</p>'.str_repeat($chunk, 900);
+        $json = json_encode($this->payload([$item]), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        $this->assertGreaterThan(64 * 1024, strlen($json));
+
+        return $json;
     }
 }

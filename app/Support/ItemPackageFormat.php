@@ -15,12 +15,20 @@ final class ItemPackageFormat
 
     public const MAX_KILOBYTES = 2048;
 
-    /** @var list<string> */
+    /**
+     * Livewire hanya mencium 64 KB pertama berkas (TemporaryUploadedFile).
+     * items-XII.json padat HTML di stem, jadi libmagic mengira text/html;
+     * items-X dan items-XI pada jendela yang sama masih text/plain.
+     * Ketiganya JSON sah. Ekstensi .json yang menolak HTML sungguhan.
+     *
+     * @var list<string>
+     */
     public const MIME_TYPES = [
         'application/json',
         'text/json',
         'text/plain',
         'application/octet-stream',
+        'text/html',
     ];
 
     public const EXAMPLE_FILENAME = 'contoh-paket-soal.json';
