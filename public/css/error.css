@@ -1,0 +1,183 @@
+/*
+ * Halaman error C-ECO. Berkas statis, bukan Vite: harus tetap jalan saat
+ * build gagal, dan lolos CSP style-src 'self' di rute siswa (R1).
+ */
+
+:root {
+    --paper: #f4f7f3;
+    --sheet: #fffcf7;
+    --ink: #1a2b22;
+    --muted: #5a6b62;
+    --line: #c5d2c8;
+    --forest: #1c5d3a;
+    --forest-ink: #f4f7f3;
+    --wash: #e4eee7;
+    --stamp: #8a1f12;
+    --stamp-wash: #f8e8e4;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; color-scheme: light; }
+
+body.error-sheet {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+}
+
+.error-sheet .frame {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 14px 1fr;
+}
+
+.error-sheet .spine { background: var(--forest); }
+
+.error-sheet .sheet {
+    background:
+        linear-gradient(180deg, transparent 47px, var(--line) 47px, var(--line) 48px, transparent 48px),
+        var(--sheet);
+    background-size: 100% 48px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 36px;
+    min-height: 100vh;
+}
+
+.error-sheet .wordmark {
+    font-family: Palatino, "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 0 0 28px;
+    color: var(--forest);
+}
+
+.error-sheet .stamp {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 20px;
+}
+
+.error-sheet .stamp svg {
+    flex: 0 0 72px;
+    width: 72px;
+    height: 56px;
+    display: block;
+    overflow: hidden;
+}
+
+.error-sheet .code {
+    font-family: Palatino, "Palatino Linotype", Georgia, serif;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--stamp);
+    margin: 0;
+}
+
+.error-sheet h1 {
+    font-family: Palatino, "Palatino Linotype", Georgia, serif;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 12px;
+}
+
+.error-sheet .lede { margin: 0 0 16px; max-width: 36em; }
+
+.error-sheet .next { margin: 0 0 24px; max-width: 36em; color: var(--muted); }
+
+.error-sheet .keterangan {
+    background: var(--stamp-wash);
+    border-left: 4px solid var(--stamp);
+    padding: 12px 14px;
+    margin: 0 0 20px;
+}
+
+.error-sheet .keterangan p { margin: 0; }
+
+.error-sheet .keterangan .label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    margin-bottom: 4px;
+}
+
+.error-sheet dl {
+    margin: 0 0 28px;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 8px 12px;
+    font-size: 15px;
+}
+
+.error-sheet dt { color: var(--muted); margin: 0; }
+
+.error-sheet dd {
+    margin: 0;
+    word-break: break-word;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 14px;
+}
+
+.error-sheet .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.error-sheet a.primary,
+.error-sheet a.text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.error-sheet a.primary {
+    background: var(--forest);
+    color: var(--forest-ink);
+    border-radius: 2px;
+}
+
+.error-sheet a.text {
+    color: var(--forest);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.error-sheet a.primary:focus-visible,
+.error-sheet a.text:focus-visible {
+    outline: 2px solid var(--forest);
+    outline-offset: 3px;
+}
+
+.error-sheet .debug {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--muted);
+    word-break: break-word;
+}
+
+@media (min-width: 640px) {
+    .error-sheet .frame { grid-template-columns: 22px 1fr; }
+    .error-sheet .sheet { padding: 56px 48px 48px; }
+    .error-sheet .code { font-size: 52px; }
+}
