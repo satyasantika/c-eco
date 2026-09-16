@@ -11,10 +11,64 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Deploy ceco
-        uses: hostinger/deploy-on-vps@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          api-key: ${{ secrets.HOSTINGER_API_KEY }}
-          virtual-machine: ${{ secrets.HOSTINGER_VM_ID }}
-          project-name: ceco
-          docker-compose-path: docker-compose.yml
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, bcmath, intl, opcache, pcntl, gd, zip, exif, redis
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build front-end assets
+        run: |
+          npm ci
+          npm run build
+
+      # Filament CSS/JS/font di-gitignore; harus dipublish sebelum di-sync ke VPS.
+      - name: Publish Filament assets
+        env:
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: php artisan filament:assets --ansi
+
+      # storage/ dan .env dikecualikan supaya file persisten di VPS tidak tertimpa/terhapus.
+      - name: Sync files to VPS
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: >-
+            -avzr --delete
+            --exclude=.git/
+            --exclude=.github/
+            --exclude=node_modules/
+            --exclude=tests/
+            --exclude=docker/
+            --exclude=storage/
+            --exclude=.env
+          path: ./
+          remote_path: ${{ secrets.VPS_DEPLOY_PATH }}
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_port: ${{ secrets.VPS_PORT || 22 }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Run post-deploy commands
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            php artisan migrate --force --no-interaction
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan queue:restart
