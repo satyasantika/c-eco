@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Schools\Pages;
 
+use App\Filament\Actions\ImportRosterAction;
 use App\Filament\Resources\Schools\SchoolResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -13,7 +16,8 @@ class ListSchools extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            ImportRosterAction::schools(),
+            CreateAction::make()->label('Sekolah baru'),
         ];
     }
 }
