@@ -1,7 +1,9 @@
-/* Denah simulasi: satu daftar ruang ujian, bukan kartu dasbor. */
+/* Denah simulasi: satu daftar ruang ujian, bukan kartu dasbor.
+   Lebar main mengikuti panel (Width::Full); jangan cap 52rem di sini. */
 
 body.ceco-roll-page .fi-main {
-    max-width: 52rem;
+    max-width: none;
+    width: 100%;
 }
 
 body.ceco-roll-page .fi-breadcrumbs {
@@ -45,7 +47,8 @@ body.ceco-roll-page .fi-header-actions .fi-btn.fi-color-gray {
 }
 
 .ceco-roll {
-    max-width: 52rem;
+    width: 100%;
+    max-width: none;
     color: #1a2b22;
 }
 

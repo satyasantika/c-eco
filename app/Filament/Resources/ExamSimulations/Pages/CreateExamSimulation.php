@@ -10,6 +10,7 @@ use App\Services\ExamSimulationBuilder;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
@@ -18,6 +19,8 @@ class CreateExamSimulation extends CreateRecord
     protected static string $resource = ExamSimulationResource::class;
 
     protected static bool $canCreateAnother = false;
+
+    protected Width | string | null $maxContentWidth = Width::Full;
 
     protected string $view = 'filament.resources.exam-simulations.create';
 
