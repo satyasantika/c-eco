@@ -47,7 +47,6 @@ jobs:
             --exclude=.github/
             --exclude=node_modules/
             --exclude=tests/
-            --exclude=docker/
             --exclude=storage/
             --exclude=.env
           path: ./
