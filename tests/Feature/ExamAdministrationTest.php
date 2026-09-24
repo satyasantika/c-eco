@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\ExamGroups\ExamGroupResource;
+use App\Filament\Resources\ExamGroups\Pages\EditExamGroup;
+use App\Filament\Resources\ExamGroups\Pages\ListExamGroups;
+use App\Filament\Resources\TestConfigs\Pages\CreateTestConfig;
+use App\Filament\Resources\TestConfigs\Schemas\TestConfigForm;
 use App\Models\ExamGroup;
 use App\Models\Item;
 use App\Models\ItemBank;
+use App\Models\Participant;
 use App\Models\School;
 use App\Models\TestConfig;
 use App\Models\TestSession;
 use App\Models\User;
 use App\Services\CatSession;
+use App\Services\ExamGroupPlanner;
 use App\Services\ExamGroupSeater;
 use App\Services\ItemPool;
 use App\Services\MixedPackageComposer;
 use App\Services\TestConfigProvisioner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\Concerns\BuildsTestSessions;
 use Tests\TestCase;
 
@@ -399,6 +407,160 @@ class ExamAdministrationTest extends TestCase
             ->get(route('admin.group-slips', $group))->assertForbidden();
         $this->actingAs($owner)->get(route('admin.group-slips', $group))->assertOk();
         $this->actingAs(User::factory()->create())->get(route('admin.group-slips', $group))->assertOk();
+    }
+
+    public function test_an_operator_can_change_the_package_of_a_schedule_before_it_starts(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $group = $this->group(capacity: 3);
+        $group->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
+        $tokens = $group->testSessions()->orderBy('id')->pluck('access_token')->all();
+        $other = $this->mixedConfig();
+
+        Livewire::actingAs($operator)
+            ->test(EditExamGroup::class, ['record' => $group->getRouteKey()])
+            ->fillForm(['test_config_id' => $other->id, 'capacity' => 2])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $group->refresh();
+        $this->assertSame($other->id, $group->test_config_id);
+        $sessions = $group->testSessions()->orderBy('id')->get();
+        $this->assertCount(2, $sessions);
+        // Token lama tetap berlaku (kursi dari ujung antrean yang dibuang).
+        $this->assertSame(array_slice($tokens, 0, 2), $sessions->pluck('access_token')->all());
+        foreach ($sessions as $session) {
+            $this->assertSame($other->id, $session->test_config_id);
+            $this->assertSame($other->item_bank_id, $session->item_bank_id);
+        }
+        $this->assertSame(0, Participant::query()->where('student_code', 'KURSI-'.$tokens[2])->count());
+    }
+
+    public function test_the_package_is_locked_once_the_schedule_has_started(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $group = $this->group(capacity: 2);
+        $original = $group->test_config_id;
+        $other = $this->mixedConfig();
+
+        Livewire::actingAs($operator)
+            ->test(EditExamGroup::class, ['record' => $group->getRouteKey()])
+            ->assertFormFieldIsDisabled('test_config_id');
+
+        $this->assertSame('Jam pelaksanaan sudah lewat.', app(ExamGroupPlanner::class)->lockReason($group));
+
+        $group->forceFill(['test_config_id' => $other->id])->save();
+        $this->expectExceptionMessage('Paket tidak bisa diganti');
+        app(ExamGroupPlanner::class)->sync($group, $original);
+    }
+
+    public function test_an_unstarted_schedule_can_be_deleted_with_its_seats(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $group = $this->group(capacity: 3);
+        $group->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
+        $token = $group->testSessions()->value('access_token');
+        $participants = Participant::query()->count();
+
+        Livewire::actingAs($operator)
+            ->test(ListExamGroups::class)
+            ->assertTableActionVisible('delete', $group)
+            ->callTableAction('delete', $group);
+
+        $this->assertModelMissing($group);
+        $this->assertSame(0, TestSession::query()->where('exam_group_id', $group->id)->count());
+        $this->assertSame($participants - 3, Participant::query()->count());
+        $this->get("/t/{$token}")->assertNotFound();
+    }
+
+    public function test_a_started_or_used_schedule_cannot_be_deleted(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $started = $this->group(capacity: 1);
+
+        $future = $this->group(capacity: 2);
+        $future->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
+        $future->testSessions()->orderBy('id')->first()->forceFill(['opened_at' => Carbon::now()])->save();
+
+        Livewire::actingAs($operator)
+            ->test(ListExamGroups::class)
+            ->assertTableActionHidden('delete', $started)
+            ->assertTableActionHidden('delete', $future);
+
+        $this->assertSame('1 kursi sudah dipakai siswa.', app(ExamGroupPlanner::class)->lockReason($future));
+        $this->expectException(\RuntimeException::class);
+        app(ExamGroupPlanner::class)->delete($started);
+    }
+
+    public function test_only_real_test_operators_see_the_delete_action(): void
+    {
+        $group = $this->group(capacity: 1);
+        $group->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
+
+        foreach ([User::factory()->create(), User::factory()->pengawas()->create()] as $user) {
+            $this->actingAs($user);
+            $this->assertFalse(ExamGroupResource::canDelete($group));
+        }
+
+        $this->actingAs(User::factory()->operator()->create());
+        $this->assertTrue(ExamGroupResource::canDelete($group));
+    }
+
+    public function test_an_operator_builds_a_mixed_package_like_a_simulation(): void
+    {
+        $operator = User::factory()->operator()->create();
+
+        Livewire::actingAs($operator)
+            ->test(CreateTestConfig::class)
+            ->assertFormSet([
+                'source' => TestConfigForm::SOURCE_MIXED,
+                'grade_share_x' => 34,
+                'grade_share_xi' => 33,
+                'grade_share_xii' => 33,
+            ])
+            ->fillForm([
+                'name' => 'Gabungan uji',
+                'grade_share_x' => 50,
+                'grade_share_xi' => 0,
+                'grade_share_xii' => 50,
+                'pool_size' => 4,
+                'min_items' => 2,
+                'max_items' => 4,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $config = TestConfig::query()->where('name', 'Gabungan uji')->firstOrFail();
+        $this->assertTrue($config->usesGradeShares());
+        $this->assertNotNull($config->item_bank_id);
+
+        $grades = $config->packageItems()->with('itemBank')->get()->countBy(fn (Item $item): string => $item->itemBank->grade)->all();
+        ksort($grades);
+        $this->assertSame(['X' => 2, 'XII' => 2], $grades);
+    }
+
+    public function test_package_shares_must_total_one_hundred(): void
+    {
+        Livewire::actingAs(User::factory()->operator()->create())
+            ->test(CreateTestConfig::class)
+            ->fillForm(['name' => 'Salah', 'grade_share_x' => 50, 'grade_share_xi' => 20, 'grade_share_xii' => 20, 'pool_size' => 30])
+            ->call('create')
+            ->assertHasFormErrors(['grade_share_xii']);
+    }
+
+    public function test_a_single_bank_package_is_still_possible(): void
+    {
+        $bank = ItemBank::query()->where('grade', 'X')->firstOrFail();
+
+        Livewire::actingAs(User::factory()->operator()->create())
+            ->test(CreateTestConfig::class)
+            ->fillForm(['name' => 'Hanya X', 'source' => TestConfigForm::SOURCE_BANK, 'item_bank_id' => $bank->id])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $config = TestConfig::query()->where('name', 'Hanya X')->firstOrFail();
+        $this->assertFalse($config->usesGradeShares());
+        $this->assertSame($bank->id, $config->item_bank_id);
     }
 
     private function mixedConfig(): TestConfig

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\TestConfigs\Tables;
 
 use App\Models\TestConfig;
+use App\Services\MixedPackageComposer;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -18,7 +19,10 @@ class TestConfigsTable
         return $table
             ->columns([
                 TextColumn::make('name')->label('Nama')->searchable()->sortable(),
-                TextColumn::make('itemBank.grade')->label('Bank')->badge(),
+                TextColumn::make('source')
+                    ->label('Sumber')
+                    ->badge()
+                    ->state(fn (TestConfig $record): string => $record->usesGradeShares() ? 'Gabungan' : 'Bank '.$record->itemBank?->grade),
                 TextColumn::make('mode')->label('Mode')->badge(),
                 TextColumn::make('package_items_count')
                     ->label('Butir dipilih')
@@ -31,7 +35,14 @@ class TestConfigsTable
                             return '—';
                         }
 
-                        return "{$record->grade_share_x}% X · {$record->grade_share_xi}% XI · {$record->grade_share_xii}% XII";
+                        $counts = MixedPackageComposer::allocate(
+                            (int) $record->pool_size,
+                            (int) $record->grade_share_x,
+                            (int) $record->grade_share_xi,
+                            (int) $record->grade_share_xii,
+                        );
+
+                        return "X {$record->grade_share_x}% ({$counts['X']}) · XI {$record->grade_share_xi}% ({$counts['XI']}) · XII {$record->grade_share_xii}% ({$counts['XII']})";
                     }),
                 TextColumn::make('min_items')->label('Min'),
                 TextColumn::make('max_items')->label('Maks'),

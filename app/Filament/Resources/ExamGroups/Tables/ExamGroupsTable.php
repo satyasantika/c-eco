@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\ExamGroups\Tables;
 
+use App\Filament\Resources\ExamGroups\ExamGroupResource;
 use App\Models\ExamGroup;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -57,6 +59,7 @@ class ExamGroupsTable
                     ->openUrlInNewTab(),
                 EditAction::make()
                     ->visible(fn (): bool => auth()->user()?->canManageExamGroups() ?? false),
+                ExamGroupResource::deleteAction(DeleteAction::make()),
                 // Di kiri: tabelnya lebar, tombol Kartu QR / Cetak QR tidak boleh terdorong keluar layar.
             ], position: RecordActionsPosition::BeforeColumns)
             ->toolbarActions([])

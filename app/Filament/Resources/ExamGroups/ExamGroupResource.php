@@ -11,7 +11,9 @@ use App\Filament\Resources\ExamGroups\Schemas\ExamGroupForm;
 use App\Filament\Resources\ExamGroups\Tables\ExamGroupsTable;
 use App\Models\ExamGroup;
 use App\Models\User;
+use App\Services\ExamGroupPlanner;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -86,9 +88,31 @@ class ExamGroupResource extends Resource
             && ! $record->isExamSimulation();
     }
 
+    /** Hanya operator tes asli, dan hanya sebelum jam mulai serta sebelum ada kursi terpakai. */
     public static function canDelete(mixed $record): bool
     {
-        return false;
+        $user = auth()->user();
+
+        return $user instanceof User
+            && $user->canManageExamGroups()
+            && $record instanceof ExamGroup
+            && ! app(ExamGroupPlanner::class)->isLocked($record);
+    }
+
+    public static function deleteAction(DeleteAction $action): DeleteAction
+    {
+        return $action
+            ->label('Hapus jadwal')
+            // Aksi tabel tidak otomatis memanggil canDelete(); kunci jadwal diperiksa per baris.
+            ->visible(fn (ExamGroup $record): bool => static::canDelete($record))
+            ->modalHeading('Hapus jadwal ini?')
+            ->modalDescription('Jadwal belum berjalan dan belum ada kursi terpakai. Semua kursi dan token rombongan ini ikut hilang; slip QR yang sudah dicetak tidak berlaku lagi. Bank soal, paket ujian, dan data siswa tidak tersentuh.')
+            ->using(function (ExamGroup $record): bool {
+                app(ExamGroupPlanner::class)->delete($record);
+
+                return true;
+            })
+            ->successNotificationTitle('Jadwal dihapus');
     }
 
     public static function canDeleteAny(): bool

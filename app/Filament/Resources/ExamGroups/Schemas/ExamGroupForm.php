@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\ExamGroups\Schemas;
 
 use App\Enums\UserRole;
+use App\Models\ExamGroup;
 use App\Models\TestConfig;
 use App\Models\User;
+use App\Services\ExamGroupPlanner;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -63,14 +65,18 @@ class ExamGroupForm
                             ->all())
                         ->required()
                         ->searchable()
-                        ->helperText('Paket disusun di menu Paket Ujian (operator).'),
+                        // Kursi yang sudah terbit ikut pindah paket saat disimpan, selama jadwal belum berjalan.
+                        ->disabled(fn (?ExamGroup $record): bool => $record !== null && app(ExamGroupPlanner::class)->isLocked($record))
+                        ->helperText(fn (?ExamGroup $record): string => $record !== null && ($reason = app(ExamGroupPlanner::class)->lockReason($record))
+                            ? 'Paket terkunci: '.$reason
+                            : 'Paket disusun di menu Paket Ujian. Boleh diganti sampai jam mulai; semua kursi dan slip ruang ini ikut memakai paket baru.'),
                     TextInput::make('capacity')
                         ->label('Jumlah siswa (kursi token)')
                         ->numeric()
                         ->required()
                         ->minValue(1)
                         ->maxValue(80)
-                        ->helperText('Satu token per siswa di ruangan itu. Setelah disimpan, kursi QR dibuat otomatis.'),
+                        ->helperText('Satu token per siswa di ruangan itu. Menambah membuat kursi baru; mengurangi membuang kursi kosong dari ujung antrean (cetak ulang slip).'),
                     Textarea::make('notes')->label('Catatan')->rows(2)->columnSpanFull(),
                 ])
                 ->columns(2),
