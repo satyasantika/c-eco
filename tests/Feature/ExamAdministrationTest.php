@@ -326,6 +326,80 @@ class ExamAdministrationTest extends TestCase
             ->assertJsonPath('token', $second->access_token);
     }
 
+    public function test_an_operator_can_print_group_slips_before_the_start_without_letting_students_in(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $group = $this->group(capacity: 3);
+        $group->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
+        $sessions = $group->testSessions()->orderBy('id')->get();
+
+        $html = (string) $this->actingAs($operator)
+            ->get(route('admin.group-slips', $group))
+            ->assertOk()
+            ->assertSee('Kursi 1 / 3')
+            // Gaya cetak inline; CSP style-src 'self' akan membuat slip tampil polos.
+            ->assertHeaderMissing('Content-Security-Policy')
+            ->assertSee('Tes belum dimulai')
+            ->assertDontSee('filament', false)
+            ->getContent();
+
+        foreach ($sessions as $session) {
+            $this->assertStringContainsString(route('student.show', $session->access_token), $html);
+        }
+        $this->assertSame(3, substr_count($html, '<svg'));
+
+        // Mencetak tidak menyentuh kursi: tidak ada yang dianggap dibuka, diklaim, atau terikat.
+        foreach ($sessions as $session) {
+            $fresh = $session->fresh();
+            $this->assertNull($fresh->opened_at);
+            $this->assertNull($fresh->claimed_at);
+            $this->assertNull($fresh->resume_token);
+        }
+
+        // Siswa memindai slip sebelum jadwal: semua pintu masuk tertahan.
+        $first = $sessions->first();
+        $this->get("/t/{$first->access_token}")
+            ->assertOk()
+            ->assertSee('Tes belum dimulai')
+            ->assertDontSee('Nomor induk siswa');
+
+        $this->post("/t/{$first->access_token}/identitas", [
+            'student_code' => '12345678',
+            'display_name' => 'Siti Uji',
+            'grade' => 'XI',
+            'class_name' => 'IPS 1',
+        ])->assertRedirect(route('student.show', $first->access_token));
+        $this->post("/t/{$first->access_token}/mulai", ['consent' => '1'])
+            ->assertRedirect(route('student.show', $first->access_token));
+        $this->post("/t/{$first->access_token}/tes")
+            ->assertRedirect(route('student.show', $first->access_token));
+
+        $fresh = $first->fresh();
+        $this->assertNull($fresh->opened_at);
+        $this->assertNull($fresh->claimed_at);
+        $this->assertNull($fresh->resume_token);
+        $this->assertSame('pending', $fresh->status);
+
+        // Tepat di jam mulai, slip yang sama langsung bisa dipakai.
+        $this->travelTo($group->starts_at);
+        $this->get("/t/{$first->access_token}")
+            ->assertOk()
+            ->assertSee('Nomor induk siswa');
+    }
+
+    public function test_group_slips_are_limited_to_staff_of_that_group(): void
+    {
+        $owner = User::factory()->pengawas()->create();
+        $group = $this->group(capacity: 2, supervisor: $owner);
+
+        $this->get(route('admin.group-slips', $group))->assertRedirect('/login');
+        $this->actingAs(User::factory()->peneliti()->create())
+            ->get(route('admin.group-slips', $group))->assertForbidden();
+        $this->actingAs(User::factory()->pengawas()->create())
+            ->get(route('admin.group-slips', $group))->assertForbidden();
+        $this->actingAs($owner)->get(route('admin.group-slips', $group))->assertOk();
+        $this->actingAs(User::factory()->create())->get(route('admin.group-slips', $group))->assertOk();
+    }
 
     private function mixedConfig(): TestConfig
     {

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ExamGroupSlipController;
 use App\Http\Controllers\Admin\SlipController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ManualController;
@@ -29,6 +30,11 @@ Route::get('admin/slip/{config}', SlipController::class)
     ->middleware('auth')
     ->name('admin.slips');
 
+// Slip QR rombongan: boleh dicetak sebelum jadwal; siswa tetap tertahan sampai starts_at.
+// Tanpa SecurityHeaders: CSP style-src 'self' memblokir gaya cetak inline (sama dengan slip lama).
+Route::get('admin/rombongan/{examGroup}/slip', ExamGroupSlipController::class)
+    ->middleware('auth')
+    ->name('admin.group-slips');
 
 Route::middleware(['auth', WithoutLivewireAssets::class, SecurityHeaders::class])->group(function (): void {
     Route::get('awas/{examGroup}', [ProctorQrController::class, 'show'])->name('proctor.qr');

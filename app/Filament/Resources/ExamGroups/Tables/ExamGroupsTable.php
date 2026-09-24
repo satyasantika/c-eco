@@ -8,6 +8,7 @@ use App\Models\ExamGroup;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
@@ -48,9 +49,16 @@ class ExamGroupsTable
                     ->icon('heroicon-o-qr-code')
                     ->url(fn (ExamGroup $record): string => route('proctor.qr', $record))
                     ->openUrlInNewTab(),
+                Action::make('slips')
+                    ->label('Cetak QR')
+                    ->icon('heroicon-o-printer')
+                    ->tooltip('Slip QR per kursi. Boleh dicetak sebelum jadwal; siswa baru bisa masuk saat jam mulai.')
+                    ->url(fn (ExamGroup $record): string => route('admin.group-slips', $record))
+                    ->openUrlInNewTab(),
                 EditAction::make()
                     ->visible(fn (): bool => auth()->user()?->canManageExamGroups() ?? false),
-            ])
+                // Di kiri: tabelnya lebar, tombol Kartu QR / Cetak QR tidak boleh terdorong keluar layar.
+            ], position: RecordActionsPosition::BeforeColumns)
             ->toolbarActions([])
             ->defaultSort('starts_at');
     }
