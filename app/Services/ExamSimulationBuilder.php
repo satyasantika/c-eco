@@ -225,7 +225,7 @@ class ExamSimulationBuilder
     /**
      * @return list<User>
      */
-    private function accounts(ExamSimulation $simulation, UserRole $role, int $count, string $tag, string $label): array
+    public function accounts(ExamSimulation $simulation, UserRole $role, int $count, string $tag, string $label): array
     {
         $created = [];
 

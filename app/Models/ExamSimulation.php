@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Services\ExamSimulationPurger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -23,6 +24,7 @@ class ExamSimulation extends Model
     {
         return [
             'starts_at' => 'datetime',
+            'is_demo' => 'boolean',
             'students' => 'integer',
             'rooms' => 'integer',
             'grade_share_x' => 'integer',
@@ -62,6 +64,12 @@ class ExamSimulation extends Model
     public function pengawas(): HasMany
     {
         return $this->users()->where('role', UserRole::Pengawas);
+    }
+
+    /** @param  Builder<self>  $query */
+    public function scopeDemo(Builder $query): void
+    {
+        $query->where('is_demo', true);
     }
 
     public function label(): string

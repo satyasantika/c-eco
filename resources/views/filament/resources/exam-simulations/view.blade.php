@@ -25,7 +25,7 @@
             </p>
 
             <div class="ceco-roll-pass">
-                <p>Sandi bersama, untuk pengawas dan operator gelombang ini saja.</p>
+                <p>{{ $wave->is_demo ? 'Sandi bersama semua akun demo (admin, operator, pengawas, peneliti). Hilang saat simulasi dihapus.' : 'Sandi bersama, untuk pengawas dan operator gelombang ini saja.' }}</p>
                 <p class="ceco-roll-passphrase">{{ $wave->plain_password }}</p>
             </div>
         </section>

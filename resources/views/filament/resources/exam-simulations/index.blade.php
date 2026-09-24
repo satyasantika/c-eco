@@ -1,4 +1,15 @@
 <x-filament-panels::page>
+    @php($demo = $this->demo())
+    <p class="ceco-roll-demo-status {{ $demo ? 'is-active' : '' }}" data-demo-status="{{ $demo ? 'active' : 'inactive' }}">
+        @if ($demo)
+            Simulasi demo <strong>aktif</strong> sejak {{ $demo->created_at?->timezone(config('app.timezone'))->format('d M Y, H:i') }}
+            — {{ $demo->label() }}.
+            <a href="{{ \App\Filament\Resources\ExamSimulations\ExamSimulationResource::getUrl('view', ['record' => $demo]) }}">Lihat akun dan sandi</a>.
+        @else
+            Simulasi demo <strong>tidak aktif</strong>. Tombol "Buat Simulasi" menyiapkan akun tiap peran dan sesi tes contoh.
+        @endif
+    </p>
+
     <div class="ceco-roll">
         @forelse ($this->waves() as $wave)
             <article class="ceco-roll-slip">
@@ -38,4 +49,9 @@
             </article>
         @endforelse
     </div>
+
+    {{-- Halaman tabel biasanya merender modal aksi lewat $this->table; tampilan
+         kustom ini tidak memanggil tabel, jadi modal (Ubah jam, Buat/Hapus
+         Simulasi) harus dirender sendiri. --}}
+    <x-filament-actions::modals />
 </x-filament-panels::page>
