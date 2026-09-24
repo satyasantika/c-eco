@@ -48,11 +48,14 @@ class SeatGuard
 
     public function admits(TestSession $session, Request $request): bool
     {
-        if ($session->resume_token === null) {
-            return true;
-        }
-
         $secret = $this->incomingSecret($request, $session->access_token);
+
+        if ($session->resume_token === null) {
+            // Selama izin pindah HP berlaku, HP lama tidak boleh merebut kursi kembali.
+            $release = app(SeatReleaser::class)->activeRelease($session);
+
+            return $release === null || $secret === null || ! hash_equals($release->previous_token, $secret);
+        }
 
         return $secret !== null && hash_equals($session->resume_token, $secret);
     }
@@ -76,11 +79,22 @@ class SeatGuard
         }
 
         $secret = $this->secretFor($session, $request);
+        $releaser = app(SeatReleaser::class);
+        $release = $releaser->activeRelease($session);
 
-        TestSession::query()
+        // HP baru setelah izin pindah: selalu kunci baru, jangan pakai ulang kunci HP lama.
+        if ($release !== null && hash_equals($release->previous_token, $secret)) {
+            $secret = bin2hex(random_bytes(16));
+        }
+
+        $bound = TestSession::query()
             ->whereKey($session->id)
             ->whereNull('resume_token')
             ->update(['resume_token' => $secret]);
+
+        if ($bound > 0 && $release !== null) {
+            $releaser->markUsed($session);
+        }
 
         $session->resume_token = $session->fresh()?->resume_token ?? $secret;
         $this->remember($request, $session->access_token, $session->resume_token);

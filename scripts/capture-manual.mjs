@@ -64,6 +64,7 @@ async function runStep(page, [action, selector, value]) {
         case 'check': await target.check({ force: true }); break;
         case 'click': await target.click({ force: true }); await settle(page); break;
         case 'waitFor': await target.waitFor({ state: 'visible', timeout: 15000 }); break;
+        case 'scrollTo': await target.evaluate((el) => el.scrollIntoView({ block: 'start' })); await page.waitForTimeout(400); break;
         default: throw new Error(`Aksi tidak dikenal: ${action}`);
     }
 }

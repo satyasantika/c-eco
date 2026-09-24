@@ -225,6 +225,12 @@ class DemoSimulation
                     'class_name' => $grade.' IPS '.(($counter % 2) + 1),
                 ]);
                 $seat->participant->forceFill(['consent_at' => Carbon::now()])->save();
+                // Siswa yang sedang mengerjakan terkunci ke satu HP, seperti di lapangan,
+                // supaya pengawas bisa berlatih "Izinkan pindah HP". Kursi selesai
+                // dibiarkan terbuka agar halaman hasilnya bisa dipotret untuk manual.
+                if ($i >= $completed) {
+                    $seat->forceFill(['resume_token' => bin2hex(random_bytes(16))])->save();
+                }
 
                 $this->answer($seat, $i < $completed ? null : random_int(3, 7));
             }

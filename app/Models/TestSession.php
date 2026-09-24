@@ -78,6 +78,11 @@ class TestSession extends Model
         return $group === null || $group->hasStarted($now);
     }
 
+    public function seatReleases(): HasMany
+    {
+        return $this->hasMany(SeatRelease::class);
+    }
+
     public function sessionItems(): HasMany
     {
         return $this->hasMany(SessionItem::class)->orderBy('sequence');

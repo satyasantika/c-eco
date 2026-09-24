@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\TestSession;
 use App\Services\SeatGuard;
+use App\Services\SeatReleaser;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +20,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class BindStudentSeat
 {
-    public function __construct(private readonly SeatGuard $guard) {}
+    public function __construct(
+        private readonly SeatGuard $guard,
+        private readonly SeatReleaser $releaser,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -37,6 +41,8 @@ class BindStudentSeat
             return $next($request);
         }
 
+        $session = $this->releaser->settle($session);
+
         if (! $this->guard->admits($session, $request)) {
             return $this->taken($request, $session);
         }
@@ -45,7 +51,10 @@ class BindStudentSeat
         $session = $session->fresh(['examGroup']) ?? $session;
         $secret = $this->guard->secretFor($session, $request);
 
-        if ($session->resume_token === null && $this->shouldPersist($session)) {
+        // Izin pindah HP berlaku: kursi terikat ke HP baru ini begitu dibuka.
+        $moving = $this->releaser->activeRelease($session) !== null;
+
+        if ($session->resume_token === null && ($moving || $this->shouldPersist($session))) {
             $secret = $this->guard->persist($session, $request);
         }
 

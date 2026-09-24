@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Services\SeatReleaser;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -57,7 +58,7 @@ final class UserManual
                         'steps' => [
                             'Tulis nomor induk, nama lengkap, jenjang (X, XI, atau XII), dan kelas.',
                             'Periksa sekali lagi, lalu tekan <strong>Lanjut</strong>. Identitas mengikat token ke HP ini.',
-                            'Satu token hanya untuk satu siswa. Kalau token dibuka di HP lain, layar menampilkan <strong>Token sudah dipakai</strong>; minta QR atau slip baru ke pengawas, jangan memakai token teman.',
+                            'Satu token hanya untuk satu siswa. Kalau token dibuka di HP lain, layar menampilkan <strong>Token sudah dipakai</strong>. Jangan memakai token teman; kalau itu tokenmu sendiri dan HP-mu bermasalah, minta pengawas mengizinkan pindah HP.',
                         ],
                         'shot' => ['file' => 'siswa/03-identitas.png', 'as' => 'student', 'path' => '/', 'mobile' => true,
                             // Mulai lagi dari halaman depan: tangkapan sebelumnya membuka ruang lain.
@@ -108,6 +109,7 @@ final class UserManual
                         'steps' => [
                             'Halaman selesai muncul sendiri. Tunjukkan ke pengawas bila diminta.',
                             'Kalau HP mati di tengah tes, buka lagi tautan yang sama di HP yang sama: tes berlanjut dari soal terakhir.',
+                            'Kalau harus pindah ke HP lain, angkat tangan. Setelah pengawas mengizinkan pindah HP, buka token yang sama di HP baru dalam '.SeatReleaser::RELEASE_MINUTES.' menit; tes berlanjut dari soal terakhir.',
                         ],
                         'shot' => ['file' => 'siswa/07-selesai.png', 'as' => 'student', 'path' => '/t/{token_done}', 'mobile' => true],
                     ],
@@ -159,10 +161,32 @@ final class UserManual
                     [
                         'title' => 'Pantau kemajuan ruang',
                         'steps' => [
-                            'Menu <strong>Monitor</strong> menunjukkan berapa siswa sedang mengerjakan, selesai, dan koneksinya.',
+                            'Menu <strong>Monitor</strong> menunjukkan siswa di ruang yang Anda jaga: status, jumlah butir, dan kabar terakhir.',
+                            'Cari siswa lewat kotak pencarian: nama, NIS, kelas, atau token di slip/QR (boleh diketik dengan spasi, misalnya <code>ABCD EFGH</code>). Filter <strong>Ruang</strong>, <strong>Status</strong>, dan <strong>Tersendat</strong> mempersempit daftar.',
                             'Siswa yang lama tidak terlihat biasanya kehabisan kuota atau layarnya mati; datangi dan minta membuka tautan yang sama.',
                         ],
-                        'shot' => ['file' => 'pengawas/05-monitor.png', 'as' => 'pengawas', 'path' => '/admin/monitor'],
+                        'shot' => ['file' => 'pengawas/05-monitor.png', 'as' => 'pengawas', 'path' => '/admin/monitor',
+                            'steps' => [
+                                ['fill', 'input[placeholder="Nama, NIS, kelas, atau token"]', 'Putri'],
+                                ['waitFor', 'td:has-text("Putri Ayu")'],
+                                ['scrollTo', 'text=Cari nama siswa'],
+                            ]],
+                    ],
+                    [
+                        'title' => 'Siswa perlu pindah HP',
+                        'steps' => [
+                            'Kalau HP siswa mati atau rusak di tengah tes, HP lain yang membuka tokennya akan melihat <strong>Token sudah dipakai</strong>. Ini disengaja agar token tidak dipakai orang lain.',
+                            'Pastikan siswanya benar ada di depan Anda. Di Monitor, cari namanya atau tokennya, lalu tekan <strong>Pindah HP</strong> di awal barisnya, lalu <strong>Izinkan pindah</strong>. Alasan boleh diisi.',
+                            'Siswa membuka tautan atau token yang sama di HP baru dalam '.SeatReleaser::RELEASE_MINUTES.' menit. Tes berlanjut dari soal terakhir; jawaban sebelumnya tidak hilang.',
+                            'Begitu HP baru terbuka, token terkunci ke HP itu dan HP lama ditolak. Kalau izin tidak dipakai dalam '.SeatReleaser::RELEASE_MINUTES.' menit, token kembali ke HP lama.',
+                            'Kolom <strong>HP</strong> menunjukkan Terkunci, Belum terikat, atau Boleh pindah s.d. jam tertentu. Setiap izin tercatat: siapa, kapan, dan alasannya.',
+                        ],
+                        'shot' => ['file' => 'pengawas/06-pindah-hp.png', 'as' => 'pengawas', 'path' => '/admin/monitor',
+                            'steps' => [
+                                ['click', 'button:has-text("Pindah HP")'],
+                                ['waitFor', 'text=pindah HP?'],
+                                ['scrollTo', 'text=Cari nama siswa'],
+                            ]],
                     ],
                 ],
             ],
