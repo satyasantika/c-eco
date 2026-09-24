@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        'manual' => [
+            // Tangkapan layar manual pengguna. Disimpan di public/ dan ikut Git
+            // supaya ter-deploy bersama kode, tanpa storage:link atau artisan di server.
+            'driver' => 'local',
+            'root' => public_path('manual'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/manual',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

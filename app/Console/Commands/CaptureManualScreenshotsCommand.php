@@ -132,7 +132,7 @@ class CaptureManualScreenshotsCommand extends Command
 
         return [
             'baseUrl' => rtrim((string) ($this->option('base-url') ?: config('app.url')), '/'),
-            'outDir' => 'storage/app/public/'.UserManual::DIRECTORY,
+            'outDir' => 'public/'.UserManual::DIRECTORY,
             'accounts' => collect($accounts)
                 ->map(fn ($user): array => ['email' => $user->email, 'password' => $simulation->plain_password])
                 ->all(),

@@ -47,17 +47,17 @@ class UserManualTest extends TestCase
 
     public function test_captured_screenshots_are_shown_and_missing_ones_are_explained(): void
     {
-        Storage::fake('public');
+        Storage::fake('manual');
         $shot = UserManual::roles()['admin']['sections'][0]['shot']['file'];
-        Storage::disk('public')->putFileAs(
-            dirname(UserManual::path($shot)),
+        Storage::disk('manual')->putFileAs(
+            dirname($shot),
             UploadedFile::fake()->image('x.png'),
             basename($shot),
         );
 
         $this->get(route('manual.show', 'admin'))
             ->assertOk()
-            ->assertSee('storage/'.UserManual::path($shot), false)
+            ->assertSee(asset(UserManual::path($shot)), false)
             ->assertSee('manual:capture-screenshots');
     }
 

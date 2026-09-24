@@ -125,9 +125,9 @@ sebagai `image/png` (200). Di lebar 360 px tidak ada geser horizontal (R8).
   demo** tiap peran lewat formulir login Filament, lalu memotret. Alur siswa
   dijalankan sungguhan: isi token, identitas, persetujuan, soal latihan,
   butir tes pertama, dan halaman selesai dari sesi demo yang sudah selesai.
-- **Lokasi:** `storage/app/public/manual/<peran>/NN-nama.png`, disajikan di
-  `/storage/manual/...` lewat symlink `public/storage`. Total 24 berkas, sekitar
-  2,2 MB.
+- **Lokasi:** `public/manual/<peran>/NN-nama.png` (disk `manual`), URL
+  `/manual/...`. **Masuk Git** dan ikut ter-deploy bersama kode, tanpa
+  `storage:link` atau artisan di server. Total 24 berkas, sekitar 2,3 MB.
 - **Sandi demo disamarkan** pada gambar lembar akun demo.
 - Tangkapan yang berkasnya belum ada diganti catatan "belum dibuat", bukan
   gambar rusak.
@@ -211,7 +211,6 @@ halaman.
 ```bash
 php artisan migrate                 # kolom exam_simulations.is_demo
 npm ci && npm run build             # CSS halaman panduan (site.css)
-php artisan storage:link            # public/storage -> storage/app/public (sekali saja)
 ```
 
 Lokal, symlink dibuat relatif (`public/storage -> ../storage/app/public`)
@@ -224,13 +223,11 @@ sudah terpasang di mesin ini.
 
 **Produksi**
 
-- Deploy (rsync) **mengecualikan `storage/`** dan tidak menjalankan
-  `storage:link`. Tangkapan layar di `storage/app/public/manual` juga
-  gitignored, jadi **tidak ikut ter-deploy**. Supaya manual produksi
-  bergambar:
-  1. Jalankan sekali `php artisan storage:link` di VPS.
-  2. Salin folder tangkapan ke VPS (`rsync storage/app/public/manual/ vps:<app>/storage/app/public/manual/`), atau jalankan pemotretan dari laptop dengan `--base-url=https://<domain>/c-eco` lalu salin hasilnya.
-  3. Tanpa langkah ini, halaman panduan tetap tampil, tetapi dengan catatan "tangkapan layar belum dibuat".
+- Tangkapan layar ada di `public/manual/` dan ikut Git, jadi rsync deploy
+  (yang hanya mengecualikan `storage/`) membawanya ke VPS. Tidak perlu
+  artisan, `storage:link`, Node, atau Playwright di server.
+- Untuk memperbarui gambar: potret ulang di laptop, commit `public/manual/`,
+  lalu push/deploy seperti biasa.
 
 ## Catatan dan risiko yang perlu diputuskan
 

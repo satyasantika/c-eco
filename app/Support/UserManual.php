@@ -340,13 +340,13 @@ final class UserManual
 
     public static function exists(string $file): bool
     {
-        return Storage::disk('public')->exists(self::path($file));
+        return Storage::disk('manual')->exists($file);
     }
 
     public static function url(string $file): string
     {
-        $version = @filemtime(Storage::disk('public')->path(self::path($file))) ?: 0;
+        $version = @filemtime(Storage::disk('manual')->path($file)) ?: 0;
 
-        return asset('storage/'.self::path($file)).'?v='.$version;
+        return asset(self::path($file)).'?v='.$version;
     }
 }
