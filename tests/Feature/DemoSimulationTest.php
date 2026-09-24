@@ -47,7 +47,13 @@ class DemoSimulationTest extends TestCase
         $this->assertSame(0, $demo->users()->whereNull('exam_simulation_id')->count());
 
         $sessions = TestSession::query()->whereIn('exam_group_id', $demo->examGroups()->select('id'));
-        $this->assertSame(DemoSimulation::STUDENTS, (clone $sessions)->count());
+        $this->assertSame(DemoSimulation::STUDENTS + DemoSimulation::SCHEDULED_SEATS, (clone $sessions)->count());
+
+        // Satu ruang sengaja belum dimulai: kursinya kosong dan siswa masih tertahan.
+        $scheduled = $demo->examGroups()->get()->reject->hasStarted()->values();
+        $this->assertCount(1, $scheduled);
+        $this->assertSame(DemoSimulation::SCHEDULED_SEATS, $scheduled[0]->testSessions()->whereNull('opened_at')->whereNull('claimed_at')->count());
+        $this->get('/t/'.$scheduled[0]->testSessions()->value('access_token'))->assertSee('Tes belum dimulai');
         $this->assertGreaterThan(0, (clone $sessions)->where('status', 'completed')->count());
         $this->assertGreaterThan(0, (clone $sessions)->where('status', 'in_progress')->count());
         $this->assertGreaterThan(0, (clone $sessions)->where('status', 'pending')->count());

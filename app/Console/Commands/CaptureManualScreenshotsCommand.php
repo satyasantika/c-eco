@@ -87,7 +87,11 @@ class CaptureManualScreenshotsCommand extends Command
     /** @return array<string, mixed> */
     private function job(DemoSimulation $demo, ExamSimulation $simulation): array
     {
-        $groups = $simulation->examGroups()->orderBy('room')->get();
+        $all = $simulation->examGroups()->orderBy('room')->get();
+        // Ruang yang sudah dimulai dipakai alur siswa dan Kartu QR; ruang terjadwal untuk contoh slip cetak.
+        $groups = $all->filter->hasStarted()->values();
+        $scheduled = $all->reject->hasStarted()->first()
+            ?? throw new RuntimeException('Simulasi demo belum punya ruang terjadwal. Jalankan simulation:reset lalu ulangi.');
         $groupIds = $groups->pluck('id');
         $accounts = $demo->accountsByRole($simulation);
 
@@ -115,6 +119,8 @@ class CaptureManualScreenshotsCommand extends Command
         $replace = [
             '{demo}' => '/admin/exam-simulations/'.$simulation->id,
             '{qr}' => '/awas/'.$qrGroup->id,
+            '{slips}' => '/admin/rombongan/'.$scheduled->id.'/slip',
+            '{token_scheduled}' => (string) $scheduled->testSessions()->orderBy('id')->value('access_token'),
             '{token_seat}' => $seat,
             '{token_done}' => $done,
             // Nomor induk harus baru setiap kali: kursi demo menolak nomor yang sudah dipakai.

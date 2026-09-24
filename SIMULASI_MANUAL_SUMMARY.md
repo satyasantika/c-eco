@@ -127,7 +127,7 @@ sebagai `image/png` (200). Di lebar 360 px tidak ada geser horizontal (R8).
   butir tes pertama, dan halaman selesai dari sesi demo yang sudah selesai.
 - **Lokasi:** `public/manual/<peran>/NN-nama.png` (disk `manual`), URL
   `/manual/...`. **Masuk Git** dan ikut ter-deploy bersama kode, tanpa
-  `storage:link` atau artisan di server. Total 24 berkas, sekitar 2,3 MB.
+  `storage:link` atau artisan di server. Total 27 berkas, sekitar 2,6 MB.
 - **Sandi demo disamarkan** pada gambar lembar akun demo.
 - Tangkapan yang berkasnya belum ada diganti catatan "belum dibuat", bukan
   gambar rusak.

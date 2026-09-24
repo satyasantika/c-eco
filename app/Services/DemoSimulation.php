@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\CAT\ResponseModel;
 use App\Enums\UserRole;
+use App\Models\ExamGroup;
 use App\Models\ExamSimulation;
 use App\Models\SessionItem;
 use App\Models\TestSession;
@@ -32,6 +33,12 @@ class DemoSimulation
     public const STUDENTS = 24;
 
     public const ROOMS = 2;
+
+    /**
+     * Kursi ruang tambahan yang dijadwalkan besok pagi: contoh slip QR yang
+     * dicetak sebelum jadwal dan layar "Tes belum dimulai" di HP siswa.
+     */
+    public const SCHEDULED_SEATS = 4;
 
     /** Porsi kursi per ruang: selesai, sedang mengerjakan, sisanya belum dipindai. */
     public const COMPLETED_SHARE = 0.5;
@@ -98,6 +105,7 @@ class DemoSimulation
                 $this->builder->accounts($simulation, UserRole::Peneliti, 1, 'pn', 'Peneliti');
 
                 $this->playSessions($simulation);
+                $this->scheduleRoom($simulation);
 
                 return $simulation;
             });
@@ -164,6 +172,31 @@ class DemoSimulation
             ->unique(fn (User $user): string => $user->role->value)
             ->mapWithKeys(fn (User $user): array => [$user->role->value => $user])
             ->all();
+    }
+
+    /**
+     * Ruang yang belum dimulai (besok 07.30): slipnya boleh dicetak sekarang,
+     * tetapi siswa yang memindai hanya melihat "Tes belum dimulai".
+     */
+    private function scheduleRoom(ExamSimulation $simulation): void
+    {
+        $template = $simulation->examGroups()->orderBy('room')->firstOrFail();
+        $n = $simulation->examGroups()->count() + 1;
+        $tz = (string) config('app.timezone');
+
+        $group = ExamGroup::query()->create([
+            'exam_simulation_id' => $simulation->id,
+            'school_id' => $template->school_id,
+            'name' => $simulation->name.' · kelas '.$n.' (terjadwal)',
+            'room' => 'S'.$simulation->id.'-R'.str_pad((string) $n, 2, '0', STR_PAD_LEFT),
+            'starts_at' => Carbon::tomorrow($tz)->setTime(7, 30),
+            'supervisor_id' => $template->supervisor_id,
+            'test_config_id' => $template->test_config_id,
+            'capacity' => self::SCHEDULED_SEATS,
+            'notes' => 'Simulasi #'.$simulation->id.' — ruang terjadwal untuk contoh slip QR, bukan tes asli.',
+        ]);
+
+        app(ExamGroupSeater::class)->fill($group);
     }
 
     /**

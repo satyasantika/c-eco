@@ -46,7 +46,7 @@ class ListExamSimulations extends ListRecords
                 ->visible(fn (): bool => $this->demo() === null)
                 ->requiresConfirmation()
                 ->modalHeading('Buat simulasi demo?')
-                ->modalDescription('Satu gelombang demo: '.DemoSimulation::STUDENTS.' kursi di '.DemoSimulation::ROOMS.' ruang, akun admin, operator, pengawas, dan peneliti, serta sesi tes yang sebagian sudah dijawab. Semua ditandai simulasi dan bisa dihapus utuh. Bank soal dan tes asli tidak berubah.')
+                ->modalDescription('Satu gelombang demo: '.DemoSimulation::STUDENTS.' kursi di '.DemoSimulation::ROOMS.' ruang yang sedang berjalan, 1 ruang terjadwal besok ('.DemoSimulation::SCHEDULED_SEATS.' kursi, contoh slip QR), akun admin, operator, pengawas, dan peneliti, serta sesi tes yang sebagian sudah dijawab. Semua ditandai simulasi dan bisa dihapus utuh. Bank soal dan tes asli tidak berubah.')
                 ->modalSubmitActionLabel('Buat')
                 ->action(function (): void {
                     $this->runDemo(fn (DemoSimulation $demo): string => $demo->generate()['created']

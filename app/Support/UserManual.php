@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
  *
  * Kunci 'shot':
  *   as      admin|operator|pengawas|peneliti (akun demo), guest, atau student
- *   path    jalur relatif; {demo}, {qr}, {token_seat}, {token_done}, {student_code} diisi saat tangkap
+ *   path    jalur relatif; {demo}, {qr}, {slips}, {token_seat}, {token_scheduled}, {token_done}, {student_code} diisi saat tangkap
  *   mobile  viewport HP 390 px (sisi siswa); selain itu 1366 px
  *   steps   aksi Playwright sebelum memotret: [aksi, selektor, nilai?]
  */
@@ -31,26 +31,37 @@ final class UserManual
             'siswa' => [
                 'label' => 'Siswa',
                 'tagline' => 'Mengerjakan tes di HP sendiri, tanpa akun.',
-                'access' => 'Tidak perlu akun. Cukup kode QR dari pengawas atau token delapan huruf di slip cadangan.',
+                'access' => 'Tidak perlu akun. Cukup kode QR dari pengawas, atau slip QR bertoken delapan huruf yang dibagikan sekolah.',
                 'sections' => [
                     [
                         'title' => 'Buka tes dari halaman depan',
                         'steps' => [
-                            'Pindai kode QR yang disodorkan pengawas. Tautan langsung membuka tes di browser HP.',
-                            'Kalau kamera bermasalah, buka halaman depan C-ECO dan ketik token delapan huruf dari slip cadangan.',
+                            'Pindai kode QR yang disodorkan pengawas atau yang tercetak di slipmu. Tautan langsung membuka tes di browser HP.',
+                            'Kalau kamera bermasalah, buka halaman depan C-ECO dan ketik token delapan huruf yang tertulis di bawah QR.',
                             'Tekan <strong>Buka tes</strong>.',
                         ],
                         'shot' => ['file' => 'siswa/01-token.png', 'as' => 'student', 'path' => '/', 'mobile' => true,
                             'steps' => [['fill', '#token', '{token_seat}']]],
                     ],
                     [
+                        'title' => 'Kalau muncul "Tes belum dimulai"',
+                        'steps' => [
+                            'Slip QR boleh dibagikan sebelum hari-H, tetapi tes baru terbuka pada jam yang ditetapkan operator. Jamnya memakai waktu server, bukan jam HP.',
+                            'Sebelum jam itu, halaman hanya menampilkan jam mulai. Tokenmu belum terpakai dan belum terikat ke HP mana pun.',
+                            'Biarkan halaman terbuka: halaman memuat ulang sendiri dan langsung lanjut ke isian identitas begitu jamnya tiba.',
+                        ],
+                        'shot' => ['file' => 'siswa/02-belum-dimulai.png', 'as' => 'student', 'path' => '/t/{token_scheduled}', 'mobile' => true],
+                    ],
+                    [
                         'title' => 'Isi identitas',
                         'steps' => [
                             'Tulis nomor induk, nama lengkap, jenjang (X, XI, atau XII), dan kelas.',
                             'Periksa sekali lagi, lalu tekan <strong>Lanjut</strong>. Identitas mengikat token ke HP ini.',
+                            'Satu token hanya untuk satu siswa. Kalau token dibuka di HP lain, layar menampilkan <strong>Token sudah dipakai</strong>; minta QR atau slip baru ke pengawas, jangan memakai token teman.',
                         ],
-                        'shot' => ['file' => 'siswa/02-identitas.png', 'as' => 'student', 'mobile' => true,
-                            'steps' => [['click', 'button.primary']]],
+                        'shot' => ['file' => 'siswa/03-identitas.png', 'as' => 'student', 'path' => '/', 'mobile' => true,
+                            // Mulai lagi dari halaman depan: tangkapan sebelumnya membuka ruang lain.
+                            'steps' => [['fill', '#token', '{token_seat}'], ['click', 'button.primary']]],
                     ],
                     [
                         'title' => 'Baca petunjuk dan beri persetujuan',
@@ -58,7 +69,7 @@ final class UserManual
                             'Baca aturan singkat: soal tampil satu per satu dan tidak bisa kembali ke soal sebelumnya.',
                             'Centang persetujuan, lalu tekan <strong>Mulai</strong>.',
                         ],
-                        'shot' => ['file' => 'siswa/03-persetujuan.png', 'as' => 'student', 'mobile' => true,
+                        'shot' => ['file' => 'siswa/04-persetujuan.png', 'as' => 'student', 'mobile' => true,
                             'steps' => [
                                 ['fill', '#student_code', '{student_code}'],
                                 ['fill', '#display_name', 'Siswa Contoh'],
@@ -73,7 +84,7 @@ final class UserManual
                             'Soal latihan tidak dinilai. Pakai untuk mencoba cara memilih jawaban.',
                             'Pilih satu jawaban, lalu tekan <strong>Lanjut ke tes</strong>.',
                         ],
-                        'shot' => ['file' => 'siswa/04-latihan.png', 'as' => 'student', 'mobile' => true,
+                        'shot' => ['file' => 'siswa/05-latihan.png', 'as' => 'student', 'mobile' => true,
                             'steps' => [['check', 'input[name=consent]'], ['click', 'button[type=submit]']]],
                     ],
                     [
@@ -84,7 +95,7 @@ final class UserManual
                             'Jawaban terkirim saat menekan Lanjut. Kalau sinyal putus, jawaban dikirim ulang otomatis; jangan tutup halaman.',
                             'Jumlah soal bisa berbeda antarsiswa: tes berhenti sendiri setelah kemampuanmu cukup terukur.',
                         ],
-                        'shot' => ['file' => 'siswa/05-soal.png', 'as' => 'student', 'mobile' => true,
+                        'shot' => ['file' => 'siswa/06-soal.png', 'as' => 'student', 'mobile' => true,
                             'steps' => [
                                 ['click', 'input[name=latihan] >> nth=0'],
                                 ['click', 'button:has-text("Lanjut ke tes")'],
@@ -98,13 +109,13 @@ final class UserManual
                             'Halaman selesai muncul sendiri. Tunjukkan ke pengawas bila diminta.',
                             'Kalau HP mati di tengah tes, buka lagi tautan yang sama di HP yang sama: tes berlanjut dari soal terakhir.',
                         ],
-                        'shot' => ['file' => 'siswa/06-selesai.png', 'as' => 'student', 'path' => '/t/{token_done}', 'mobile' => true],
+                        'shot' => ['file' => 'siswa/07-selesai.png', 'as' => 'student', 'path' => '/t/{token_done}', 'mobile' => true],
                     ],
                 ],
             ],
             'pengawas' => [
                 'label' => 'Pengawas',
-                'tagline' => 'Menjaga satu ruang dan menyodorkan kartu QR ke siswa.',
+                'tagline' => 'Menjaga satu ruang dan membagikan kode QR ke siswa: lewat kartu QR di layar atau slip cetak.',
                 'access' => 'Akun dibuat admin. Masuk dari tautan <em>Masuk panel</em> di halaman depan.',
                 'sections' => [
                     [
@@ -120,6 +131,7 @@ final class UserManual
                         'steps' => [
                             'Buka menu <strong>Jadwal</strong>. Baris yang tampil adalah ruang dengan nama Anda sebagai pengawas.',
                             'Perhatikan jam mulai: kartu QR baru terbuka setelah jam server melewati jam itu.',
+                            'Setiap baris punya dua tombol: <strong>Kartu QR</strong> (satu QR bergilir di layar) dan <strong>Cetak QR</strong> (slip kertas per kursi).',
                         ],
                         'shot' => ['file' => 'pengawas/02-jadwal.png', 'as' => 'pengawas', 'path' => '/admin/exam-groups'],
                     ],
@@ -127,10 +139,22 @@ final class UserManual
                         'title' => 'Sodorkan kartu QR',
                         'steps' => [
                             'Buka <strong>Kartu QR</strong> ruang Anda di laptop atau tablet yang menghadap siswa.',
-                            'Satu QR untuk satu siswa. Setelah siswa mengisi identitas, kartu berganti sendiri ke kursi berikutnya.',
+                            'Satu QR untuk satu siswa. Kartu berganti sendiri begitu HP siswa membuka tautannya.',
+                            'Kalau pemindaian lambat, ketuk <strong>Token berikutnya</strong> untuk langsung menampilkan QR siswa berikutnya tanpa menunggu.',
                             'Siswa yang kameranya bermasalah boleh mengetik token yang tercetak di bawah QR.',
+                            'Token terikat ke HP pertama yang mengisi identitas. Siswa yang melihat <strong>Token sudah dipakai</strong> diberi QR berikutnya, bukan token temannya.',
                         ],
                         'shot' => ['file' => 'pengawas/03-kartu-qr.png', 'as' => 'pengawas', 'path' => '{qr}'],
+                    ],
+                    [
+                        'title' => 'Atau bagikan slip QR cetak',
+                        'steps' => [
+                            'Tekan <strong>Cetak QR</strong> di baris ruang, lalu <strong>Cetak</strong>. Satu lembar A4 memuat delapan slip, satu slip per kursi.',
+                            'Slip boleh dicetak dan dibagikan kapan saja sebelum hari-H. Siswa yang memindainya sebelum jam mulai hanya melihat "Tes belum dimulai"; kursinya tetap kosong.',
+                            'Di satu ruang, pakai salah satu saja: slip cetak <em>atau</em> Kartu QR. Kartu QR menampilkan kursi kosong berikutnya, yang mungkin sudah tercetak di slip siswa lain.',
+                            'Slip kursi yang sudah dibuka tampil pudar saat dicetak ulang. Jangan dibagikan lagi.',
+                        ],
+                        'shot' => ['file' => 'pengawas/04-slip-qr.png', 'as' => 'pengawas', 'path' => '{slips}'],
                     ],
                     [
                         'title' => 'Pantau kemajuan ruang',
@@ -138,13 +162,13 @@ final class UserManual
                             'Menu <strong>Monitor</strong> menunjukkan berapa siswa sedang mengerjakan, selesai, dan koneksinya.',
                             'Siswa yang lama tidak terlihat biasanya kehabisan kuota atau layarnya mati; datangi dan minta membuka tautan yang sama.',
                         ],
-                        'shot' => ['file' => 'pengawas/04-monitor.png', 'as' => 'pengawas', 'path' => '/admin/monitor'],
+                        'shot' => ['file' => 'pengawas/05-monitor.png', 'as' => 'pengawas', 'path' => '/admin/monitor'],
                     ],
                 ],
             ],
             'operator' => [
                 'label' => 'Operator',
-                'tagline' => 'Menyiapkan sekolah, peserta, paket ujian, dan jadwal ruang.',
+                'tagline' => 'Menyiapkan sekolah, peserta, paket ujian, jadwal ruang, dan slip QR.',
                 'access' => 'Akun dibuat admin. Akun operator dari simulasi demo hanya bisa melihat: sekolah, peserta, paket ujian, dan pembuatan jadwal asli tertutup baginya.',
                 'sections' => [
                     [
@@ -192,8 +216,20 @@ final class UserManual
                             'Isi nama ruang, jam mulai, kapasitas kursi, paket ujian, dan pengawasnya.',
                             'Setelah disimpan, kursi dan token terbit sendiri; pengawas membuka Kartu QR dari barisnya.',
                         ],
-                        'shot' => ['file' => 'operator/04-jadwal.png', 'as' => 'operator', 'path' => '/admin/exam-groups'],
+                        'shot' => ['file' => 'operator/02-jadwal.png', 'as' => 'operator', 'path' => '/admin/exam-groups'],
                         'shot_note' => 'Tangkapan dari akun operator demo, karena itu kosong: daftar ini hanya memuat jadwal tes asli (ruang simulasi ada di menu Simulasi milik admin), dan tombol Buat hanya muncul untuk operator tes asli.',
+                    ],
+                    [
+                        'title' => 'Cetak slip QR sebelum hari-H',
+                        'steps' => [
+                            'Di menu <strong>Jadwal</strong>, tekan <strong>Cetak QR</strong> pada baris ruang. Halaman cetak terbuka di tab baru; tekan <strong>Cetak</strong>.',
+                            'Satu lembar A4 memuat delapan slip: nomor kursi, sekolah dan ruang, token, QR, serta jam mulai.',
+                            'Mencetak tidak membuka kursi. Sebelum jam mulai, siswa yang memindai slip hanya melihat "Tes belum dimulai" dan tidak bisa mengisi identitas atau mengerjakan tes. Tepat pada jam mulai (waktu server) slip yang sama langsung bisa dipakai.',
+                            'Simpan slip di tempat aman sampai dibagikan: satu slip untuk satu siswa, dan token terkunci ke HP pertama yang mengisi identitas.',
+                            'Beri tahu pengawas ruang itu agar tidak memakai Kartu QR bersamaan dengan slip cetak.',
+                        ],
+                        'shot' => ['file' => 'operator/03-slip-qr.png', 'as' => 'operator', 'path' => '{slips}'],
+                        'shot_note' => 'Contoh dari ruang simulasi demo yang dijadwalkan besok pagi.',
                     ],
                     [
                         'title' => 'Ekspor data',
@@ -201,7 +237,7 @@ final class UserManual
                             'Di halaman Monitor, tekan <strong>Ekspor CSV</strong> di kanan atas.',
                             'Berkas CSV berisi sesi, jawaban per butir, peserta, dan peristiwa koneksi.',
                         ],
-                        'shot' => ['file' => 'operator/05-ekspor.png', 'as' => 'operator', 'path' => '/admin/monitor', 'clip' => 'header'],
+                        'shot' => ['file' => 'operator/04-ekspor.png', 'as' => 'operator', 'path' => '/admin/monitor', 'clip' => 'header'],
                     ],
                 ],
             ],
