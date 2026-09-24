@@ -473,10 +473,13 @@ class ExamAdministrationTest extends TestCase
         $this->get("/t/{$token}")->assertNotFound();
     }
 
-    public function test_a_started_or_used_schedule_cannot_be_deleted(): void
+    public function test_a_used_schedule_cannot_be_deleted_but_an_unused_past_one_can(): void
     {
         $operator = User::factory()->operator()->create();
         $started = $this->group(capacity: 1);
+        $started->testSessions()->first()->forceFill(['status' => 'in_progress'])->save();
+        $unusedPast = $this->group(capacity: 2);
+        $unusedPast->forceFill(['room' => 'Lama', 'starts_at' => Carbon::now()->subDays(3)])->save();
 
         $future = $this->group(capacity: 2);
         $future->forceFill(['starts_at' => Carbon::now()->addDay()])->save();
@@ -485,7 +488,12 @@ class ExamAdministrationTest extends TestCase
         Livewire::actingAs($operator)
             ->test(ListExamGroups::class)
             ->assertTableActionHidden('delete', $started)
-            ->assertTableActionHidden('delete', $future);
+            ->assertTableActionHidden('delete', $future)
+            ->assertTableActionVisible('delete', $unusedPast)
+            ->callTableAction('delete', $unusedPast);
+
+        $this->assertModelMissing($unusedPast);
+        $this->assertSame(0, TestSession::query()->where('exam_group_id', $unusedPast->id)->count());
 
         $this->assertSame('1 kursi sudah dipakai siswa.', app(ExamGroupPlanner::class)->lockReason($future));
         $this->expectException(\RuntimeException::class);

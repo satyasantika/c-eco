@@ -25,6 +25,33 @@ class ExamGroup extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Jalur mana pun yang menghapus jadwal (menu, simulasi, tinker) tidak
+        // boleh meninggalkan token kursi kosong yang masih bisa dipindai dan
+        // terhitung "Belum mulai" di Monitor.
+        static::deleting(function (ExamGroup $group): void {
+            $unused = $group->testSessions()
+                ->where('status', 'pending')
+                ->whereNull('opened_at')
+                ->whereNull('claimed_at')
+                ->whereNull('resume_token')
+                ->whereDoesntHave('sessionItems')
+                ->get(['id', 'participant_id']);
+
+            if ($unused->isEmpty()) {
+                return;
+            }
+
+            TestSession::query()->whereIn('id', $unused->pluck('id'))->delete();
+            Participant::query()
+                ->whereIn('id', $unused->pluck('participant_id'))
+                ->where('student_code', 'like', 'KURSI-%')
+                ->whereDoesntHave('testSessions')
+                ->delete();
+        });
+    }
+
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);

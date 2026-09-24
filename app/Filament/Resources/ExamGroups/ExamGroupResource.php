@@ -88,7 +88,7 @@ class ExamGroupResource extends Resource
             && ! $record->isExamSimulation();
     }
 
-    /** Hanya operator tes asli, dan hanya sebelum jam mulai serta sebelum ada kursi terpakai. */
+    /** Hanya operator tes asli, dan hanya selama belum ada kursi terpakai (jam mulai boleh sudah lewat). */
     public static function canDelete(mixed $record): bool
     {
         $user = auth()->user();
@@ -96,7 +96,7 @@ class ExamGroupResource extends Resource
         return $user instanceof User
             && $user->canManageExamGroups()
             && $record instanceof ExamGroup
-            && ! app(ExamGroupPlanner::class)->isLocked($record);
+            && app(ExamGroupPlanner::class)->canBeDeleted($record);
     }
 
     public static function deleteAction(DeleteAction $action): DeleteAction
@@ -106,7 +106,7 @@ class ExamGroupResource extends Resource
             // Aksi tabel tidak otomatis memanggil canDelete(); kunci jadwal diperiksa per baris.
             ->visible(fn (ExamGroup $record): bool => static::canDelete($record))
             ->modalHeading('Hapus jadwal ini?')
-            ->modalDescription('Jadwal belum berjalan dan belum ada kursi terpakai. Semua kursi dan token rombongan ini ikut hilang; slip QR yang sudah dicetak tidak berlaku lagi. Bank soal, paket ujian, dan data siswa tidak tersentuh.')
+            ->modalDescription('Belum ada kursi terpakai. Semua kursi dan token rombongan ini ikut hilang dan tidak lagi terhitung di Monitor; slip QR yang sudah dicetak tidak berlaku lagi. Bank soal, paket ujian, dan data siswa tidak tersentuh.')
             ->using(function (ExamGroup $record): bool {
                 app(ExamGroupPlanner::class)->delete($record);
 

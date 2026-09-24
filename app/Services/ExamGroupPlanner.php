@@ -53,6 +53,27 @@ class ExamGroupPlanner
     }
 
     /**
+     * Menghapus lebih longgar dari menyunting: jadwal yang jamnya sudah lewat
+     * tetapi tidak satu kursi pun dipakai (misalnya jadwal uji coba yang
+     * batal) tetap boleh dihapus, karena tidak ada data siswa di dalamnya.
+     */
+    public function deleteBlockReason(ExamGroup $group): ?string
+    {
+        if ($group->isExamSimulation()) {
+            return 'Jadwal ini milik gelombang simulasi; hapus lewat menu Simulasi.';
+        }
+
+        $used = $this->usedSeats($group);
+
+        return $used > 0 ? "{$used} kursi sudah dipakai siswa." : null;
+    }
+
+    public function canBeDeleted(ExamGroup $group): bool
+    {
+        return $this->deleteBlockReason($group) === null;
+    }
+
+    /**
      * Terapkan paket dan kapasitas yang baru disimpan ke kursi.
      * Dipanggil setelah form menyimpan; $previousConfigId = paket sebelum disunting.
      */
@@ -70,11 +91,17 @@ class ExamGroupPlanner
 
     public function delete(ExamGroup $group): void
     {
-        if ($reason = $this->lockReason($group)) {
+        if ($reason = $this->deleteBlockReason($group)) {
             throw new RuntimeException('Jadwal tidak bisa dihapus. '.$reason);
         }
 
         DB::transaction(function () use ($group): void {
+            $group = ExamGroup::query()->lockForUpdate()->findOrFail($group->id);
+
+            if ($reason = $this->deleteBlockReason($group)) {
+                throw new RuntimeException('Jadwal tidak bisa dihapus. '.$reason);
+            }
+
             $participantIds = $group->testSessions()->pluck('participant_id');
 
             // Kursi hanya berisi peserta sementara; sesi ikut terhapus lewat cascade participant.
