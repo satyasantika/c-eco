@@ -15,7 +15,9 @@
 <header class="bar">
     <strong>C-ECO</strong>
     <span class="who">
-        @if(! empty($waiting))
+        @if(! empty($occupied))
+            Token sudah dipakai
+        @elseif(! empty($waiting))
             Menunggu jam tes
         @elseif($session->participant && ! $session->isUnclaimed())
             {{ $session->participant->display_name }}<br>{{ $session->participant->class_name }}

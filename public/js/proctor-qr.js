@@ -5,10 +5,12 @@
   }
 
   var pollUrl = root.getAttribute('data-poll-url');
+  var advanceUrl = root.getAttribute('data-advance-url');
   var started = root.getAttribute('data-started') === '1';
   var shown = started ? (root.getAttribute('data-token') || '') : '';
   var stopped = false;
   var inFlight = false;
+  var advancing = false;
 
   function countEl() {
     return document.getElementById('qr-count');
@@ -24,6 +26,11 @@
 
   function progress() {
     return document.getElementById('qr-progress');
+  }
+
+  function csrf() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
   }
 
   function setHidden(el, hidden) {
@@ -47,6 +54,14 @@
     if (now && data.now_label) {
       now.textContent = data.now_label;
     }
+  }
+
+  function bindNext() {
+    var button = document.getElementById('qr-next');
+    if (!button || !advanceUrl) {
+      return;
+    }
+    button.addEventListener('click', advance);
   }
 
   function renderLive(data) {
@@ -75,12 +90,52 @@
     host.innerHTML =
       '<div class="qr" id="qr-svg">' + data.qr + '</div>' +
       '<p class="token" id="qr-token">' + data.spaced + '</p>' +
-      '<p class="muted" id="qr-hint">Sodorkan ke siswa. Begitu halaman siswa terbuka, kode berikutnya muncul sendiri.</p>';
+      '<p class="muted" id="qr-hint">Sodorkan ke siswa, lalu ketuk Token berikutnya. Tidak perlu menunggu halaman siswa terbuka.</p>' +
+      '<p><button type="button" class="btn" id="qr-next">Token berikutnya</button></p>';
     shown = data.token;
+    bindNext();
+  }
+
+  function advance() {
+    if (advancing || stopped || !advanceUrl) {
+      return;
+    }
+    advancing = true;
+    var button = document.getElementById('qr-next');
+    if (button) {
+      button.disabled = true;
+    }
+
+    fetch(advanceUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf(),
+      },
+      body: '{}',
+    })
+      .then(function (response) {
+        return response.ok ? response.json() : null;
+      })
+      .then(function (data) {
+        if (data) {
+          renderLive(data);
+        }
+      })
+      .catch(function () {})
+      .then(function () {
+        advancing = false;
+        var next = document.getElementById('qr-next');
+        if (next) {
+          next.disabled = false;
+        }
+      });
   }
 
   function tick() {
-    if (stopped || inFlight) {
+    if (stopped || inFlight || advancing) {
       return;
     }
 
@@ -116,5 +171,6 @@
       });
   }
 
+  bindNext();
   tick();
 })();

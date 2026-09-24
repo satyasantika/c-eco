@@ -14,7 +14,7 @@ class TestSession extends Model
     protected $fillable = [
         'participant_id', 'test_config_id', 'item_bank_id', 'exam_group_id',
         'access_token', 'rng_seed', 'device_uuid', 'user_agent_hash', 'ip_hash',
-        'status', 'claimed_at', 'opened_at', 'theta', 'se', 'items_administered',
+        'status', 'claimed_at', 'opened_at', 'resume_token', 'theta', 'se', 'items_administered',
         'started_at', 'finished_at', 'last_seen_at', 'effective_connection',
     ];
 

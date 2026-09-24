@@ -24,6 +24,7 @@
 {{-- id qr-live, bukan qr-root: skrip bundel lama mencari qr-root dan jangan ikut mem-poll. --}}
 <main class="wrap" id="qr-live"
       data-poll-url="{{ route('proctor.qr.current', $group) }}"
+      data-advance-url="{{ route('proctor.qr.advance', $group) }}"
       data-started="{{ $started ? '1' : '0' }}"
       data-token="{{ $started ? ($token ?? '') : '' }}">
     <p class="progress" id="qr-progress" @if(! $started) hidden @endif>
@@ -43,7 +44,8 @@
         @if($started && $session)
             <div class="qr" id="qr-svg">{!! $qr !!}</div>
             <p class="token" id="qr-token">{{ $spaced }}</p>
-            <p class="muted" id="qr-hint">Sodorkan ke siswa. Begitu halaman siswa terbuka, kode berikutnya muncul sendiri.</p>
+            <p class="muted" id="qr-hint">Sodorkan ke siswa, lalu ketuk Token berikutnya. Tidak perlu menunggu halaman siswa terbuka.</p>
+            <p><button type="button" class="btn" id="qr-next">Token berikutnya</button></p>
         @elseif($started)
             <p class="done" id="qr-done">Semua token rombongan ini sudah terpakai.</p>
         @endif

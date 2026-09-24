@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\ExamGroup;
+use App\Models\TestSession;
 use App\Models\User;
 use App\Services\QrCodeRenderer;
 use Illuminate\Contracts\View\View;
@@ -13,8 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Kartu QR di HP pengawas: satu token tampil setelah jam server mencapai starts_at,
- * lalu berganti begitu halaman siswa terbuka.
+ * Kartu QR di HP pengawas: satu token tampil setelah jam server mencapai starts_at.
+ * Kartu maju saat siswa memuat halaman, atau saat pengawas menekan Token berikutnya.
  */
 class ProctorQrController extends Controller
 {
@@ -49,6 +50,33 @@ class ProctorQrController extends Controller
             usleep(150_000);
         }
 
+        unset($payload['session']);
+
+        return response()->json($payload);
+    }
+
+    /**
+     * Pengawas memajukan kartu tanpa menunggu GET siswa.
+     * Scan di HP lambat; antrian kelas tidak boleh menunggu halaman terbuka.
+     */
+    public function advance(Request $request, ExamGroup $examGroup): JsonResponse
+    {
+        $this->authorizeGroup($request, $examGroup);
+        abort_unless($examGroup->hasStarted(), 409, 'Jam pelaksanaan belum dimulai.');
+
+        $current = $examGroup->testSessions()
+            ->orderBy('id')
+            ->get()
+            ->first(fn ($session): bool => $session->opened_at === null);
+
+        if ($current !== null) {
+            TestSession::query()
+                ->whereKey($current->id)
+                ->whereNull('opened_at')
+                ->update(['opened_at' => Carbon::now()]);
+        }
+
+        $payload = $this->snapshot($examGroup->fresh() ?? $examGroup);
         unset($payload['session']);
 
         return response()->json($payload);

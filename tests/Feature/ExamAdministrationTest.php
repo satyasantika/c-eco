@@ -145,6 +145,68 @@ class ExamAdministrationTest extends TestCase
         ])->assertRedirect()->assertSessionHasErrors('student_code');
     }
 
+    public function test_a_proctor_can_advance_the_qr_without_waiting_for_the_student_page(): void
+    {
+        $pengawas = User::factory()->pengawas()->create();
+        $group = $this->group(capacity: 2, supervisor: $pengawas);
+        $first = $group->testSessions()->orderBy('id')->firstOrFail();
+        $second = $group->testSessions()->orderBy('id')->skip(1)->firstOrFail();
+
+        $this->actingAs($pengawas)
+            ->get(route('proctor.qr', $group))
+            ->assertOk()
+            ->assertSee('Token berikutnya', false)
+            ->assertSee('data-advance-url', false)
+            ->assertSee($first->access_token);
+
+        $this->actingAs($pengawas)
+            ->postJson(route('proctor.qr.advance', $group))
+            ->assertOk()
+            ->assertJsonPath('token', $second->access_token)
+            ->assertJsonPath('opened', 1)
+            ->assertJsonPath('claimed', 0);
+
+        $this->assertNotNull($first->fresh()->opened_at);
+        $this->assertNull($first->fresh()->claimed_at);
+        $this->assertNull($first->fresh()->resume_token);
+
+        $this->get("/t/{$first->access_token}")
+            ->assertOk()
+            ->assertSee('Nomor induk siswa');
+    }
+
+    public function test_another_phone_cannot_continue_a_claimed_token(): void
+    {
+        $group = $this->group(capacity: 1);
+        $session = $group->testSessions()->firstOrFail();
+        $token = $session->access_token;
+
+        $this->get("/t/{$token}")->assertOk()->assertSee('Nomor induk siswa');
+        $this->post("/t/{$token}/identitas", [
+            'student_code' => '111',
+            'display_name' => 'Peserta Pertama',
+            'grade' => 'X',
+            'class_name' => '1',
+        ])->assertRedirect();
+
+        $this->get("/t/{$token}")
+            ->assertOk()
+            ->assertSee('Peserta Pertama')
+            ->assertSee('Saya bersedia mengikuti tes ini.');
+
+        $this->assertNotNull($session->fresh()->resume_token);
+
+        $this->flushSession();
+        $this->withUnencryptedCookie('ceco_seat_'.strtolower($token), '00000000000000000000000000000000');
+
+        $this->get("/t/{$token}")
+            ->assertForbidden()
+            ->assertSee('Token sudah dipakai', false)
+            ->assertDontSee('Peserta Pertama', false);
+
+        $this->assertSame('Peserta Pertama', $session->fresh()->participant->display_name);
+    }
+
     public function test_a_pengawas_cannot_open_another_groups_qr(): void
     {
         $mine = User::factory()->pengawas()->create();
@@ -263,6 +325,7 @@ class ExamAdministrationTest extends TestCase
             ->assertJsonPath('started', true)
             ->assertJsonPath('token', $second->access_token);
     }
+
 
     private function mixedConfig(): TestConfig
     {

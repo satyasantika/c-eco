@@ -7,6 +7,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ManualController;
 use App\Http\Controllers\ProctorQrController;
 use App\Http\Controllers\StudentTestController;
+use App\Http\Middleware\BindStudentSeat;
 use App\Http\Middleware\RecordResponseMetrics;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\WithoutLivewireAssets;
@@ -28,11 +29,15 @@ Route::get('admin/slip/{config}', SlipController::class)
     ->middleware('auth')
     ->name('admin.slips');
 
+
 Route::middleware(['auth', WithoutLivewireAssets::class, SecurityHeaders::class])->group(function (): void {
     Route::get('awas/{examGroup}', [ProctorQrController::class, 'show'])->name('proctor.qr');
     Route::get('awas/{examGroup}/berikut', [ProctorQrController::class, 'current'])
         ->middleware('throttle:proctor-qr')
         ->name('proctor.qr.current');
+    Route::post('awas/{examGroup}/lanjut', [ProctorQrController::class, 'advance'])
+        ->middleware('throttle:proctor-qr')
+        ->name('proctor.qr.advance');
 });
 
 /*
@@ -44,6 +49,7 @@ Route::prefix('t/{token}')
         WithoutLivewireAssets::class,
         RecordResponseMetrics::class,
         SecurityHeaders::class,
+        BindStudentSeat::class,
     ])
     ->group(function (): void {
         Route::get('/', [StudentTestController::class, 'show'])->name('student.show');
