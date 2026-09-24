@@ -125,6 +125,9 @@ class SimulationSeederTest extends TestCase
         $pengawas = User::query()->where('email', 'pengawas10@c-eco.test')->firstOrFail();
         $token = $group->testSessions()->orderBy('id')->value('access_token');
 
+        // Jadwal preset memakai tanggal tetap; tanpa ini tes gagal setelah hari itu lewat.
+        $this->travelTo($group->starts_at->copy()->subHour());
+
         $this->actingAs($pengawas)
             ->get(route('proctor.qr', $group))
             ->assertOk()
