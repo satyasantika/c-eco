@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Models\SessionEvent;
-use App\Models\TestSession;
+use App\Support\MonitorScope;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 /**
@@ -15,6 +17,8 @@ use Illuminate\Support\Carbon;
  */
 class SessionOverview extends StatsOverviewWidget
 {
+    use InteractsWithPageFilters;
+
     /** Menit tanpa kabar sebelum sebuah sesi dianggap tersendat. */
     public const STUCK_AFTER_MINUTES = 5;
 
@@ -23,18 +27,18 @@ class SessionOverview extends StatsOverviewWidget
     protected function getStats(): array
     {
         $stuck = $this->stuckCount();
-        $duplicates = SessionEvent::query()->where('type', 'duplicate_submit')->count();
+        $duplicates = SessionEvent::query()->where('type', 'duplicate_submit')->whereIn('test_session_id', $this->sessions()->select('id'))->count();
 
         return [
-            Stat::make('Sedang mengerjakan', (string) TestSession::query()->where('status', 'in_progress')->count())
+            Stat::make('Sedang mengerjakan', (string) $this->sessions()->where('status', 'in_progress')->count())
                 ->description('Sesi berstatus in_progress')
                 ->color('info'),
 
-            Stat::make('Selesai', (string) TestSession::query()->where('status', 'completed')->count())
+            Stat::make('Selesai', (string) $this->sessions()->where('status', 'completed')->count())
                 ->description('Sesi berstatus completed')
                 ->color('success'),
 
-            Stat::make('Belum mulai', (string) TestSession::query()->where('status', 'pending')->count())
+            Stat::make('Belum mulai', (string) $this->sessions()->where('status', 'pending')->count())
                 ->description('Token terbit, belum dibuka')
                 ->color('gray'),
 
@@ -54,9 +58,19 @@ class SessionOverview extends StatsOverviewWidget
         ];
     }
 
+    private function sessions(): Builder
+    {
+        return MonitorScope::sessions($this->pageFilters);
+    }
+
+    protected function getDescription(): ?string
+    {
+        return MonitorScope::describe($this->pageFilters).'.';
+    }
+
     private function stuckCount(): int
     {
-        return TestSession::query()
+        return $this->sessions()
             ->where('status', 'in_progress')
             ->where(function ($query): void {
                 $threshold = Carbon::now()->subMinutes(self::STUCK_AFTER_MINUTES);
@@ -68,7 +82,7 @@ class SessionOverview extends StatsOverviewWidget
 
     private function averageItems(): string
     {
-        $average = TestSession::query()->where('status', 'completed')->avg('items_administered');
+        $average = $this->sessions()->where('status', 'completed')->avg('items_administered');
 
         return $average === null ? '—' : number_format((float) $average, 1);
     }

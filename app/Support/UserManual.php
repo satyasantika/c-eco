@@ -161,12 +161,13 @@ final class UserManual
                     [
                         'title' => 'Pantau kemajuan ruang',
                         'steps' => [
-                            'Menu <strong>Monitor</strong> menunjukkan siswa di ruang yang Anda jaga: status, jumlah butir, dan kabar terakhir.',
+                            'Menu <strong>Monitor</strong> menunjukkan siswa di ruang yang Anda jaga: status, jumlah butir, dan kabar terakhir. Bawaannya hanya jadwal <strong>hari ini</strong>; ganti <strong>Tanggal jadwal</strong> atau pilih satu <strong>Jadwal</strong> di bagian atas.',
                             'Cari siswa lewat kotak pencarian: nama, NIS, kelas, atau token di slip/QR (boleh diketik dengan spasi, misalnya <code>ABCD EFGH</code>). Filter <strong>Ruang</strong>, <strong>Status</strong>, dan <strong>Tersendat</strong> mempersempit daftar.',
                             'Siswa yang lama tidak terlihat biasanya kehabisan kuota atau layarnya mati; datangi dan minta membuka tautan yang sama.',
                         ],
                         'shot' => ['file' => 'pengawas/05-monitor.png', 'as' => 'pengawas', 'path' => '/admin/monitor',
                             'steps' => [
+                                ['scrollTo', 'text=Posisi butir peserta aktif'],
                                 ['fill', 'input[placeholder="Nama, NIS, kelas, atau token"]', 'Putri'],
                                 ['waitFor', 'td:has-text("Putri Ayu")'],
                                 ['scrollTo', 'text=Cari nama siswa'],
@@ -183,6 +184,7 @@ final class UserManual
                         ],
                         'shot' => ['file' => 'pengawas/06-pindah-hp.png', 'as' => 'pengawas', 'path' => '/admin/monitor',
                             'steps' => [
+                                ['scrollTo', 'text=Posisi butir peserta aktif'],
                                 ['click', 'button:has-text("Pindah HP")'],
                                 ['waitFor', 'text=pindah HP?'],
                                 ['scrollTo', 'text=Cari nama siswa'],
@@ -200,6 +202,7 @@ final class UserManual
                         'steps' => [
                             'Masuk dari <strong>Masuk panel</strong> di halaman depan. Halaman pertama adalah Monitor.',
                             'Kartu di atas merangkum sesi berjalan, selesai, dan laju galat; tabel di bawah memperbarui diri sendiri.',
+                            'Angkanya bawaan untuk jadwal <strong>hari ini</strong> saja, tanpa ruang simulasi. Ganti <strong>Tanggal jadwal</strong> (kosongkan untuk semua tanggal) atau pilih satu <strong>Jadwal</strong> untuk melihat satu ruang.',
                         ],
                         'shot' => ['file' => 'operator/01-monitor.png', 'as' => 'operator', 'path' => '/admin/monitor'],
                     ],

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Models\TestSession;
+use App\Support\MonitorScope;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 /**
  * Sebaran butir ke-berapa yang sedang dikerjakan peserta aktif.
@@ -15,13 +16,15 @@ use Filament\Widgets\ChartWidget;
  */
 class ProgressDistribution extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected ?string $heading = 'Posisi butir peserta aktif';
 
     protected ?string $pollingInterval = '15s';
 
     protected function getData(): array
     {
-        $counts = TestSession::query()
+        $counts = MonitorScope::sessions($this->pageFilters)
             ->where('status', 'in_progress')
             ->selectRaw('items_administered as n, count(*) as total')
             ->groupBy('items_administered')

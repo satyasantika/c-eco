@@ -21,7 +21,10 @@ class ListExamGroups extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()->label('Jadwal baru'),
+            CreateAction::make()
+                ->label('Jadwal baru')
+                // CreateAction tidak memeriksa canCreate() sendiri; pengawas hanya menjalankan jadwal.
+                ->visible(fn (): bool => ExamGroupResource::canCreate()),
         ];
     }
 

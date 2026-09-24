@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Models\TestSession;
+use App\Support\MonitorScope;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 /**
  * Sebaran kualitas koneksi peserta.
@@ -15,13 +16,15 @@ use Filament\Widgets\ChartWidget;
  */
 class ConnectionMix extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected ?string $heading = 'Koneksi peserta';
 
     protected ?string $pollingInterval = '30s';
 
     protected function getData(): array
     {
-        $counts = TestSession::query()
+        $counts = MonitorScope::sessions($this->pageFilters)
             ->whereIn('status', ['in_progress', 'completed'])
             ->selectRaw('coalesce(effective_connection, ?) as kind, count(*) as total', ['tidak dilaporkan'])
             ->groupBy('kind')

@@ -10,10 +10,16 @@ use App\Filament\Widgets\ProgressDistribution;
 use App\Filament\Widgets\ResponseHealth;
 use App\Filament\Widgets\SessionOverview;
 use App\Services\DataExporter;
+use App\Support\MonitorScope;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -29,6 +35,8 @@ use ZipArchive;
  */
 class Monitor extends Page
 {
+    use HasFiltersForm;
+
     protected string $view = 'filament.pages.monitor';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSignal;
@@ -48,6 +56,39 @@ class Monitor extends Page
                 ->visible(fn (): bool => auth()->user()?->canExport() ?? false)
                 ->action(fn (): ?StreamedResponse => $this->export()),
         ];
+    }
+
+    public function filtersForm(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make()
+                ->schema([
+                    DatePicker::make('date')
+                        ->label('Tanggal jadwal')
+                        ->native(false)
+                        ->format('Y-m-d')
+                        ->displayFormat('j M Y')
+                        ->default(now()->toDateString())
+                        ->helperText('Kosongkan untuk semua tanggal. Data uji coba lama tidak ikut terhitung selama tanggalnya berbeda.'),
+                    Select::make('exam_group_id')
+                        ->label('Jadwal')
+                        ->placeholder('Semua jadwal pada tanggal itu')
+                        ->options(fn (): array => MonitorScope::groupOptions())
+                        ->searchable()
+                        ->helperText('Pilih satu ruang untuk melihat angkanya saja.'),
+                ])
+                ->columns(2)
+                ->columnSpanFull(),
+        ]);
+    }
+
+    public function mount(): void
+    {
+        // Bawaan: jadwal hari ini. Filter tersimpan di sesi browser pengawas.
+        if ($this->filters === null || ! array_key_exists('date', $this->filters)) {
+            $this->filters = ['date' => now()->toDateString(), 'exam_group_id' => $this->filters['exam_group_id'] ?? null];
+            $this->getFiltersForm()->fill($this->filters);
+        }
     }
 
     public function getWidgets(): array

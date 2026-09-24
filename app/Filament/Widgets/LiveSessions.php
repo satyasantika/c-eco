@@ -8,6 +8,7 @@ use App\Models\ExamGroup;
 use App\Models\TestSession;
 use App\Models\User;
 use App\Services\SeatReleaser;
+use App\Support\MonitorScope;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -16,6 +17,7 @@ use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -23,6 +25,8 @@ use RuntimeException;
 
 class LiveSessions extends TableWidget
 {
+    use InteractsWithPageFilters;
+
     protected ?string $pollingInterval = '15s';
 
     protected int|string|array $columnSpan = 'full';
@@ -167,21 +171,10 @@ class LiveSessions extends TableWidget
             ->paginated([25, 50, 100]);
     }
 
-    /** Pengawas hanya melihat siswa di ruang yang ia jaga, termasuk ruang simulasi. */
+    /** Pengawas hanya melihat siswa di ruang yang ia jaga; filter halaman ikut berlaku. */
     private function baseQuery(): Builder
     {
-        $query = TestSession::query()->with(['participant.school', 'examGroup']);
-        $user = auth()->user();
-
-        if ($user instanceof User && $user->isPengawas()) {
-            return $query->whereHas('examGroup', fn (Builder $q): Builder => $q->where('supervisor_id', $user->id));
-        }
-
-        if ($user instanceof User && $user->isExamSimulationAccount()) {
-            return $query->whereHas('examGroup', fn (Builder $q): Builder => $q->where('exam_simulation_id', $user->exam_simulation_id));
-        }
-
-        return $query;
+        return MonitorScope::sessions($this->pageFilters)->with(['participant.school', 'examGroup']);
     }
 
     /** @return array<int, string> */
