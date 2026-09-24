@@ -51,6 +51,11 @@
             </section>
         </div>
 
+        <p class="site-guide">
+            Baru pertama kali? <a class="text" href="{{ route('manual.index') }}">Panduan Pengguna</a>
+            untuk siswa, pengawas, operator, peneliti, dan admin.
+        </p>
+
         <p class="foot">Kuota tes sekitar 200 KB. Tidak ada video. Kalau HP mati, buka lagi tautan di slip.</p>
     </div>
 </div>
