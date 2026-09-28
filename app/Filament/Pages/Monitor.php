@@ -23,7 +23,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use ZipArchive;
 
 /**
@@ -54,7 +54,7 @@ class Monitor extends Page
                 ->label('Ekspor CSV')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->visible(fn (): bool => auth()->user()?->canExport() ?? false)
-                ->action(fn (): ?StreamedResponse => $this->export()),
+                ->action(fn (): ?BinaryFileResponse => $this->export()),
         ];
     }
 
@@ -113,7 +113,7 @@ class Monitor extends Page
     }
 
     /** Memanggil DataExporter yang sama dengan cat:export, lalu menyodorkan zip. */
-    private function export(): ?StreamedResponse
+    private function export(): ?BinaryFileResponse
     {
         try {
             $result = app(DataExporter::class)->export();

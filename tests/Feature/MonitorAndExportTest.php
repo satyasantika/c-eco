@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Monitor;
 use App\Filament\Widgets\ConnectionMix;
 use App\Filament\Widgets\ProgressDistribution;
 use App\Filament\Widgets\ResponseHealth;
@@ -15,8 +16,10 @@ use App\Services\CatSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\Concerns\BuildsTestSessions;
 use Tests\TestCase;
+use ZipArchive;
 
 class MonitorAndExportTest extends TestCase
 {
@@ -199,6 +202,43 @@ class MonitorAndExportTest extends TestCase
 
             $this->assertSame((string) $stored, $row['item_parameter_id']);
         }
+    }
+
+    /** Tombol Monitor harus mengembalikan zip; download() menghasilkan BinaryFileResponse. */
+    public function test_the_monitor_export_action_downloads_a_zip_of_the_csv_files(): void
+    {
+        $this->runFullSession();
+
+        $component = Livewire::actingAs(User::factory()->create())
+            ->test(Monitor::class)
+            ->callAction('export');
+
+        $download = data_get($component->effects, 'download');
+
+        $this->assertIsArray($download);
+        $this->assertMatchesRegularExpression('/^\d{8}-\d{6}\.zip$/', $download['name']);
+
+        $tmp = tempnam(sys_get_temp_dir(), 'ceco-export');
+        file_put_contents($tmp, base64_decode($download['content']));
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($tmp));
+
+        $names = [];
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $names[] = $zip->getNameIndex($i);
+        }
+
+        $zip->close();
+        unlink($tmp);
+
+        sort($names);
+
+        $this->assertSame(
+            ['events.csv', 'participants.csv', 'session_items.csv', 'sessions.csv'],
+            $names,
+        );
     }
 
     public function test_the_response_export_records_both_the_shown_and_original_label(): void
